@@ -13,40 +13,33 @@ Build a full pipeline to analyze Bob Dylan’s songs and their cover versions ac
 
 ## 🧩 Modules Overview
 
-### 1. `get_dylan_songs.py`
-Fetches all original Bob Dylan works from MusicBrainz.
-- Fields captured: `work_id`, `title`, `type`, `language`, `aliases`, `relations`, `attributes`
-- Saves data to: `data/works.csv`
+### 1. `musicbrainz_downloader.py`
+Handles fetching and importing the official MusicBrainz database dumps. It can
+provision PostgreSQL via Docker, verify checksums, and stream SQL imports.
 
-### 2. `get_covers.py`
-Fetches all known recordings and releases linked to each Dylan work.
-- Fields: `recording_id`, `title`, `artist_name`, `release_title`, `release_id`, `first-release-date`
-- Saves data to: `data/recordings.csv`
+### 2. `musicbrainz_parser.py`
+Extracts Bob Dylan's works, all related recordings, and identifies cover
+versions via the MusicBrainz API (or local database when available). Exports:
+`data/dylan_works.csv`, `data/dylan_recordings.csv`, `data/dylan_covers.csv`.
 
-### 3. `get_spotify_data.py`
-Enriches each cover with Spotify metadata and popularity.
-- Adds: `spotify_track_id`, `popularity`, `album_name`, `release_date`, `duration_ms`, `explicit`
-- Saves to: `data/recordings_spotify_enriched.csv`
+### 3. `spotify_enricher.py`
+Looks up each cover on Spotify using the Web API and appends track popularity,
+album and release metadata. Output: `data/dylan_covers_with_popularity.csv`.
 
-### 4. `build_graph_db.py`
-Builds a song → artist network graph using `pyvis`.
-- Nodes: Songs and Artists
-- Edges: Covers with popularity weights
-- Output: `output/dylan_cover_graph.html`
-
-### 5. `get_live_counts.py` (Optional)
-Adds live performance frequency from Setlist.fm or cached data.
+### 4. `main.py`
+Command line entry point that orchestrates the full workflow. Flags control
+database refresh, MusicBrainz parsing and Spotify enrichment runs.
 
 ---
 
 ## 📂 Input/Output Files
 
-| Filename                             | Description |
-|--------------------------------------|-------------|
-| `data/works.csv`                     | All original Dylan works |
-| `data/recordings.csv`                | All recordings linked to Dylan's works |
-| `data/recordings_spotify_enriched.csv` | Covers + Spotify popularity |
-| `output/dylan_cover_graph.html`     | Interactive visualization of influence |
+| Filename                                   | Description |
+|--------------------------------------------|-------------|
+| `data/dylan_works.csv`                     | All original Dylan works |
+| `data/dylan_recordings.csv`                | All recordings linked to Dylan's works |
+| `data/dylan_covers.csv`                    | Dylan covers (no Dylan credited) |
+| `data/dylan_covers_with_popularity.csv`    | Covers enriched with Spotify data |
 
 ---
 
@@ -55,22 +48,17 @@ Adds live performance frequency from Setlist.fm or cached data.
 ```
 pandas
 requests
-spotipy
-tqdm
-python-dotenv
-networkx
-pyvis
+sqlalchemy  # optional for local database access
+python-dotenv  # optional for loading credentials
 ```
 
 ---
 
 ## 🚦 Usage Instructions
 
-1. Run `fetch_dylan_works()` in `get_dylan_songs.py`
-2. Run `fetch_all_recordings(works_df)` in `get_covers.py`
-3. Run `enrich_with_spotify_popularity()` in `get_spotify_data.py`
-4. Optional: Run `fetch_live_counts()` in `get_live_counts.py`
-5. Generate graph with `build_pyvis_html()` in `build_graph_db.py`
+1. `python main.py --refresh-db` (optional) to download/import MusicBrainz.
+2. `python main.py --get-covers` to create the MusicBrainz CSV exports.
+3. `python main.py --enrich-spotify` after setting Spotify credentials.
 
 ---
 
