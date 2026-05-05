@@ -30,6 +30,7 @@ import shutil
 import subprocess
 import tarfile
 import tempfile
+import time
 from dataclasses import dataclass, field
 from pathlib import Path
 from typing import List, Optional
@@ -144,7 +145,7 @@ class MusicBrainzDownloader:
     # Download logic
     # ------------------------------------------------------------------
     def download_dump(self, verify: bool = True, overwrite: bool = False) -> List[Path]:
-        """Download the configured dump files.
+        """Download the configured dump files with retry and resume support.
 
         Parameters
         ----------
@@ -161,28 +162,74 @@ class MusicBrainzDownloader:
         downloaded_files: List[Path] = []
         for file_name in self.dump_config.files:
             target_file = release_dir / file_name
+            temp_file = release_dir / f"{file_name}.partial"
+
             if target_file.exists() and not overwrite:
                 logger.info("File %s already present - skipping download", target_file)
                 downloaded_files.append(target_file)
                 continue
 
             file_url = f"{self.dump_config.base_url}/{release}/{file_name}"
-            logger.info("Downloading %s", file_url)
-            with self.session.get(file_url, stream=True, timeout=120) as response:
-                response.raise_for_status()
-                with tempfile.NamedTemporaryFile(delete=False) as tmp_file:
-                    for chunk in response.iter_content(chunk_size=1024 * 1024):
-                        if chunk:
-                            tmp_file.write(chunk)
-                    temp_path = Path(tmp_file.name)
 
-            shutil.move(str(temp_path), target_file)
-            logger.info("Saved %s", target_file)
+            # Download with retry and resume
+            max_retries = 5
+            for attempt in range(max_retries):
+                try:
+                    # Check if partial download exists
+                    resume_pos = temp_file.stat().st_size if temp_file.exists() else 0
 
-            if verify:
-                self.verify_checksum(target_file)
+                    headers = {}
+                    if resume_pos > 0:
+                        headers['Range'] = f'bytes={resume_pos}-'
+                        logger.info("Resuming download of %s from byte %d (attempt %d/%d)",
+                                  file_name, resume_pos, attempt + 1, max_retries)
+                    else:
+                        logger.info("Downloading %s (attempt %d/%d)",
+                                  file_url, attempt + 1, max_retries)
 
-            downloaded_files.append(target_file)
+                    # Longer timeout for initial connection
+                    with self.session.get(file_url, stream=True, timeout=300, headers=headers) as response:
+                        response.raise_for_status()
+
+                        # Open in append mode if resuming, write mode otherwise
+                        mode = 'ab' if resume_pos > 0 else 'wb'
+                        with open(temp_file, mode) as f:
+                            downloaded = resume_pos
+                            total_size = int(response.headers.get('content-length', 0))
+                            if resume_pos > 0:
+                                total_size += resume_pos
+
+                            for chunk in response.iter_content(chunk_size=1024 * 1024):
+                                if chunk:
+                                    f.write(chunk)
+                                    downloaded += len(chunk)
+                                    # Log progress every 100MB
+                                    if downloaded % (100 * 1024 * 1024) < 1024 * 1024:
+                                        if total_size > 0:
+                                            pct = (downloaded / total_size) * 100
+                                            logger.info("Progress: %.1f%% (%d MB / %d MB)",
+                                                      pct, downloaded // (1024*1024), total_size // (1024*1024))
+                                        else:
+                                            logger.info("Downloaded: %d MB", downloaded // (1024*1024))
+
+                    # Download successful - move to final location
+                    shutil.move(str(temp_file), target_file)
+                    logger.info("✅ Download complete: %s", target_file)
+
+                    if verify:
+                        self.verify_checksum(target_file)
+
+                    downloaded_files.append(target_file)
+                    break  # Success - exit retry loop
+
+                except (requests.exceptions.RequestException, TimeoutError, OSError) as e:
+                    wait_time = 2 ** attempt  # Exponential backoff: 1s, 2s, 4s, 8s, 16s
+                    if attempt < max_retries - 1:
+                        logger.warning("Download failed: %s. Retrying in %ds...", str(e), wait_time)
+                        time.sleep(wait_time)
+                    else:
+                        logger.error("Download failed after %d attempts: %s", max_retries, str(e))
+                        raise RuntimeError(f"Failed to download {file_name} after {max_retries} attempts") from e
 
         return downloaded_files
 
