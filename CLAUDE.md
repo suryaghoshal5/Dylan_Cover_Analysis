@@ -11,7 +11,30 @@ This project builds a comprehensive data pipeline to analyze Bob Dylan's origina
 - Build queryable datasets for cultural influence analysis
 
 ### Critical Previous Issue ⚠️
-**The project previously FAILED because it capped cover recordings at 100 per song.** This caused the most frequently covered Dylan songs (like "Blowin' in the Wind", "Like a Rolling Stone") to be excluded from the final dataset. **NEVER apply arbitrary caps on cover counts.** The pipeline must collect ALL available covers regardless of volume.
+**The project previously FAILED because it capped cover recordings at ~100-110 per song.** Analysis of previous iteration data (`previous_iterations/`) confirmed:
+
+**Songs Confirmed Truncated:**
+- **"Blowin' in the Wind"**: 103 versions collected (should be 500+) ❌ **~400 missing**
+- **"Like a Rolling Stone"**: 107 versions collected (should be 400+) ❌ **~300 missing**  
+- **"All Along the Watchtower"**: 102 versions collected (should be 300+) ❌ **~200 missing**
+- **"Mr. Tambourine Man"**: 109 versions collected (should be 250+) ❌ **~150 missing**
+- **"Masters of War"**: 103 versions collected (should be 200+) ❌ **~100 missing**
+- **12 out of 20 top songs** were capped at 102-109 versions
+
+**Total Impact**: ~1,500-2,000+ covers missing from the most culturally significant Dylan songs.
+
+**NEVER apply arbitrary caps on cover counts.** The pipeline must use proper pagination to collect ALL available covers regardless of volume. See `previous_iterations/ANALYSIS.md` for detailed forensics.
+
+### Previous Iteration Data Available
+
+The `previous_iterations/` directory contains data from failed attempts:
+- `dylan_enriched.csv` (40,895 rows): Contains valuable enrichment (genre, era, themes, influence_score)
+- `dylan_recordings_output.csv` (42,465 rows): Raw recordings showing the cap problem  
+- `most_covered_songs.csv`: Evidence of truncation - 12/20 songs capped at 102-109
+- `DYLAN.ipynb`, `DylanCoversDemo.ipynb`: Analysis notebooks with visualization patterns
+- `ANALYSIS.md`: Detailed forensics of what went wrong
+
+**Reuse Strategy**: For songs below the cap (e.g., "Forever Young": 124 versions), existing data may be reusable after validation. For capped songs, must re-fetch completely.
 
 ---
 
