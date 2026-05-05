@@ -58,6 +58,7 @@ musicbrainz/
 
 # Logs
 *.log
+*.pid
 logs/
 
 # Testing
