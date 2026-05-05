@@ -50,6 +50,10 @@ def refetch_single_work(
         'title': work_title,
     }])
 
+    # Ensure artist ID is set (needed for is_bob_dylan check)
+    if not parser._artist_id:
+        parser.get_artist_id()
+
     # Fetch recordings using the existing parser
     recordings_df = parser.fetch_recordings(work_df)
 
@@ -173,7 +177,8 @@ def main():
     logger.info(f"Old total covers: {stats['total_old_covers']}")
     logger.info(f"New total covers: {stats['total_new_covers']}")
     logger.info(f"Gain: +{stats['total_new_covers'] - stats['total_old_covers']} covers")
-    logger.info(f"Improvement: {(stats['total_new_covers'] / stats['total_old_covers'] - 1) * 100:.1f}% increase")
+    if stats['total_old_covers'] > 0:
+        logger.info(f"Improvement: {(stats['total_new_covers'] / stats['total_old_covers'] - 1) * 100:.1f}% increase")
     logger.info("=" * 60)
 
 
