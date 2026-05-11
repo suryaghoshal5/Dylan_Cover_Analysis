@@ -72,14 +72,32 @@ class SpotifyEnricher:
             return covers_df.copy()
 
         enriched_rows = []
-        for row in covers_df.to_dict(orient="records"):
+        failed_count = 0
+        for idx, row in enumerate(covers_df.to_dict(orient="records"), 1):
+            if idx % 100 == 0:
+                logger.info(f"Progress: {idx}/{len(covers_df)} ({failed_count} failed)")
+
             title = row.get("recording_title") or row.get("work_title")
             artist_name = row.get("cover_artist_name") or row.get("artist_names")
-            spotify_info = self.lookup_track(title, artist_name)
-            if spotify_info:
-                row.update(spotify_info)
+
+            try:
+                # Skip if title is too long (>200 chars causes Spotify API issues)
+                if title and len(title) > 200:
+                    logger.warning(f"Skipping long title: {title[:100]}...")
+                    enriched_rows.append(row)
+                    failed_count += 1
+                    continue
+
+                spotify_info = self.lookup_track(title, artist_name)
+                if spotify_info:
+                    row.update(spotify_info)
+            except Exception as e:
+                logger.warning(f"Failed to enrich '{title}' by '{artist_name}': {e}")
+                failed_count += 1
+
             enriched_rows.append(row)
 
+        logger.info(f"Enrichment complete: {len(enriched_rows)} total, {failed_count} failed/skipped")
         return pd.DataFrame(enriched_rows)
 
     # ------------------------------------------------------------------
@@ -177,7 +195,10 @@ class SpotifyEnricher:
         token_url = "https://accounts.spotify.com/api/token"
         credentials = f"{self.config.client_id}:{self.config.client_secret}".encode()
         encoded = base64.b64encode(credentials).decode()
-        headers = {"Authorization": f"Basic {encoded}"}
+        headers = {
+            "Authorization": f"Basic {encoded}",
+            "Content-Type": "application/x-www-form-urlencoded"
+        }
         data = {"grant_type": "client_credentials"}
         response = self.session.post(token_url, headers=headers, data=data, timeout=30)
         if response.status_code != 200:
