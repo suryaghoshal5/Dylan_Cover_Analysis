@@ -1,0 +1,670 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>MusicBrainz Database Schema - Dylan Cover Analysis</title>
+    <style>
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            max-width: 1400px;
+            margin: 0 auto;
+            padding: 20px;
+            background: #f5f5f5;
+            line-height: 1.6;
+        }
+        h1 {
+            color: #2c3e50;
+            border-bottom: 3px solid #3498db;
+            padding-bottom: 10px;
+        }
+        h2 {
+            color: #34495e;
+            margin-top: 30px;
+            border-left: 4px solid #3498db;
+            padding-left: 15px;
+        }
+        h3 {
+            color: #7f8c8d;
+            margin-top: 20px;
+        }
+        .dump-section {
+            background: white;
+            padding: 20px;
+            margin: 20px 0;
+            border-radius: 8px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+        .dump-header {
+            display: flex;
+            align-items: center;
+            margin-bottom: 15px;
+        }
+        .dump-icon {
+            font-size: 40px;
+            margin-right: 15px;
+        }
+        .dump-title {
+            flex: 1;
+        }
+        .dump-size {
+            color: #95a5a6;
+            font-size: 14px;
+        }
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin: 15px 0;
+            background: white;
+        }
+        th {
+            background: #3498db;
+            color: white;
+            padding: 12px;
+            text-align: left;
+            font-weight: 600;
+        }
+        td {
+            padding: 10px 12px;
+            border-bottom: 1px solid #ecf0f1;
+        }
+        tr:hover {
+            background: #f8f9fa;
+        }
+        .table-name {
+            font-weight: 600;
+            color: #2980b9;
+            font-family: 'Courier New', monospace;
+        }
+        .field-type {
+            color: #27ae60;
+            font-family: 'Courier New', monospace;
+            font-size: 12px;
+        }
+        .key-table {
+            background: #fff3cd;
+            border-left: 4px solid #ffc107;
+        }
+        .important {
+            background: #d4edda;
+            border-left: 4px solid #28a745;
+        }
+        .note {
+            background: #e7f3ff;
+            border-left: 4px solid #2196f3;
+            padding: 15px;
+            margin: 15px 0;
+            border-radius: 4px;
+        }
+        .workflow {
+            background: #fff;
+            padding: 20px;
+            margin: 20px 0;
+            border-radius: 8px;
+            border: 2px dashed #3498db;
+        }
+        .workflow ol {
+            margin: 10px 0;
+            padding-left: 25px;
+        }
+        .workflow li {
+            margin: 8px 0;
+        }
+        code {
+            background: #f4f4f4;
+            padding: 2px 6px;
+            border-radius: 3px;
+            font-family: 'Courier New', monospace;
+            color: #e74c3c;
+        }
+        .stats {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 15px;
+            margin: 20px 0;
+        }
+        .stat-card {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 20px;
+            border-radius: 8px;
+            text-align: center;
+        }
+        .stat-value {
+            font-size: 32px;
+            font-weight: bold;
+            margin: 10px 0;
+        }
+        .stat-label {
+            font-size: 14px;
+            opacity: 0.9;
+        }
+    </style>
+</head>
+<body>
+    <h1>🎸 MusicBrainz Database Schema Guide</h1>
+    <p><strong>For Dylan Cover Analysis Project</strong> | Generated: 2026-05-11</p>
+
+    <div class="note">
+        <strong>📊 Purpose:</strong> This guide maps the MusicBrainz database structure to help extract Bob Dylan's works and all their cover versions. The three dumps contain different aspects of the music metadata.
+    </div>
+
+    <div class="stats">
+        <div class="stat-card">
+            <div class="stat-label">Total Database Size</div>
+            <div class="stat-value">~22 GB</div>
+            <div class="stat-label">Compressed</div>
+        </div>
+        <div class="stat-card">
+            <div class="stat-label">Number of Dumps</div>
+            <div class="stat-value">3</div>
+            <div class="stat-label">Core + Derived + Edit</div>
+        </div>
+        <div class="stat-card">
+            <div class="stat-label">Expected Dylan Works</div>
+            <div class="stat-value">~650</div>
+            <div class="stat-label">Compositions</div>
+        </div>
+        <div class="stat-card">
+            <div class="stat-label">Expected Covers</div>
+            <div class="stat-value">~45,000</div>
+            <div class="stat-label">Recordings</div>
+        </div>
+    </div>
+
+    <!-- DUMP 1: CORE DATA -->
+    <div class="dump-section">
+        <div class="dump-header">
+            <div class="dump-icon">📀</div>
+            <div class="dump-title">
+                <h2 style="margin: 0;">1. mbdump.tar.bz2 - Core MusicBrainz Data</h2>
+                <div class="dump-size">Size: ~6.7 GB | Contains: Essential music metadata</div>
+            </div>
+        </div>
+
+        <p><strong>Purpose:</strong> The foundational database containing artists, works, recordings, releases, and their relationships. This is the primary source for Dylan cover analysis.</p>
+
+        <h3>🔑 Key Tables for Dylan Analysis</h3>
+
+        <table class="key-table">
+            <thead>
+                <tr>
+                    <th>Table Name</th>
+                    <th>Key Fields</th>
+                    <th>Purpose</th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr class="important">
+                    <td class="table-name">artist</td>
+                    <td>
+                        <code>id</code> <span class="field-type">UUID</span><br>
+                        <code>gid</code> <span class="field-type">UUID</span><br>
+                        <code>name</code> <span class="field-type">VARCHAR</span><br>
+                        <code>sort_name</code> <span class="field-type">VARCHAR</span><br>
+                        <code>type</code> <span class="field-type">INT</span><br>
+                        <code>area</code> <span class="field-type">INT</span><br>
+                        <code>begin_date_year</code> <span class="field-type">SMALLINT</span><br>
+                        <code>end_date_year</code> <span class="field-type">SMALLINT</span>
+                    </td>
+                    <td>Find Bob Dylan's artist ID to identify his works and filter his own recordings from covers</td>
+                </tr>
+                <tr class="important">
+                    <td class="table-name">work</td>
+                    <td>
+                        <code>id</code> <span class="field-type">INT</span><br>
+                        <code>gid</code> <span class="field-type">UUID</span><br>
+                        <code>name</code> <span class="field-type">VARCHAR</span><br>
+                        <code>type</code> <span class="field-type">INT</span><br>
+                        <code>language</code> <span class="field-type">INT</span><br>
+                        <code>iswc</code> <span class="field-type">VARCHAR</span><br>
+                        <code>comment</code> <span class="field-type">VARCHAR</span>
+                    </td>
+                    <td>Dylan's original compositions (songs, not recordings). Each work can have many recordings/covers.</td>
+                </tr>
+                <tr class="important">
+                    <td class="table-name">recording</td>
+                    <td>
+                        <code>id</code> <span class="field-type">INT</span><br>
+                        <code>gid</code> <span class="field-type">UUID</span><br>
+                        <code>name</code> <span class="field-type">VARCHAR</span><br>
+                        <code>artist_credit</code> <span class="field-type">INT</span><br>
+                        <code>length</code> <span class="field-type">INT</span><br>
+                        <code>comment</code> <span class="field-type">VARCHAR</span><br>
+                        <code>video</code> <span class="field-type">BOOLEAN</span>
+                    </td>
+                    <td>Individual performances/recordings. Links to works via recording_work table. Contains both Dylan's recordings and covers.</td>
+                </tr>
+                <tr class="important">
+                    <td class="table-name">recording_work</td>
+                    <td>
+                        <code>recording_id</code> <span class="field-type">INT</span><br>
+                        <code>work_id</code> <span class="field-type">INT</span><br>
+                        <code>link_type</code> <span class="field-type">INT</span>
+                    </td>
+                    <td><strong>⭐ CRITICAL:</strong> Links recordings to their source works. This is how we find all covers of a Dylan song.</td>
+                </tr>
+                <tr>
+                    <td class="table-name">artist_credit</td>
+                    <td>
+                        <code>id</code> <span class="field-type">INT</span><br>
+                        <code>name</code> <span class="field-type">VARCHAR</span><br>
+                        <code>artist_count</code> <span class="field-type">SMALLINT</span><br>
+                        <code>ref_count</code> <span class="field-type">INT</span>
+                    </td>
+                    <td>Credits listing who performed the recording. Used to identify if it's Dylan or a cover artist.</td>
+                </tr>
+                <tr>
+                    <td class="table-name">artist_credit_name</td>
+                    <td>
+                        <code>artist_credit</code> <span class="field-type">INT</span><br>
+                        <code>position</code> <span class="field-type">SMALLINT</span><br>
+                        <code>artist</code> <span class="field-type">INT</span><br>
+                        <code>name</code> <span class="field-type">VARCHAR</span><br>
+                        <code>join_phrase</code> <span class="field-type">VARCHAR</span>
+                    </td>
+                    <td>Individual artists in a credit (handles collaborations like "Bob Dylan & The Band")</td>
+                </tr>
+                <tr>
+                    <td class="table-name">release</td>
+                    <td>
+                        <code>id</code> <span class="field-type">INT</span><br>
+                        <code>gid</code> <span class="field-type">UUID</span><br>
+                        <code>name</code> <span class="field-type">VARCHAR</span><br>
+                        <code>artist_credit</code> <span class="field-type">INT</span><br>
+                        <code>release_group</code> <span class="field-type">INT</span><br>
+                        <code>status</code> <span class="field-type">INT</span><br>
+                        <code>packaging</code> <span class="field-type">INT</span><br>
+                        <code>barcode</code> <span class="field-type">VARCHAR</span>
+                    </td>
+                    <td>Albums, EPs, singles that contain recordings. Used for release date and album info.</td>
+                </tr>
+                <tr>
+                    <td class="table-name">track</td>
+                    <td>
+                        <code>id</code> <span class="field-type">INT</span><br>
+                        <code>gid</code> <span class="field-type">UUID</span><br>
+                        <code>recording</code> <span class="field-type">INT</span><br>
+                        <code>medium</code> <span class="field-type">INT</span><br>
+                        <code>position</code> <span class="field-type">INT</span><br>
+                        <code>number</code> <span class="field-type">VARCHAR</span><br>
+                        <code>name</code> <span class="field-type">VARCHAR</span><br>
+                        <code>length</code> <span class="field-type">INT</span>
+                    </td>
+                    <td>Links recordings to releases (which track on which album)</td>
+                </tr>
+                <tr>
+                    <td class="table-name">medium</td>
+                    <td>
+                        <code>id</code> <span class="field-type">INT</span><br>
+                        <code>release</code> <span class="field-type">INT</span><br>
+                        <code>position</code> <span class="field-type">INT</span><br>
+                        <code>format</code> <span class="field-type">INT</span><br>
+                        <code>name</code> <span class="field-type">VARCHAR</span><br>
+                        <code>track_count</code> <span class="field-type">INT</span>
+                    </td>
+                    <td>Represents physical media (CD, Vinyl, Digital). Links releases to tracks.</td>
+                </tr>
+                <tr>
+                    <td class="table-name">release_group</td>
+                    <td>
+                        <code>id</code> <span class="field-type">INT</span><br>
+                        <code>gid</code> <span class="field-type">UUID</span><br>
+                        <code>name</code> <span class="field-type">VARCHAR</span><br>
+                        <code>artist_credit</code> <span class="field-type">INT</span><br>
+                        <code>type</code> <span class="field-type">INT</span><br>
+                        <code>comment</code> <span class="field-type">VARCHAR</span>
+                    </td>
+                    <td>Groups multiple releases of the same album (e.g., US vs UK versions)</td>
+                </tr>
+            </tbody>
+        </table>
+
+        <h3>📅 Date & Metadata Tables</h3>
+        <table>
+            <thead>
+                <tr>
+                    <th>Table Name</th>
+                    <th>Key Fields</th>
+                    <th>Purpose</th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr>
+                    <td class="table-name">release_country</td>
+                    <td>
+                        <code>release</code> <span class="field-type">INT</span><br>
+                        <code>country</code> <span class="field-type">INT</span><br>
+                        <code>date_year</code> <span class="field-type">SMALLINT</span><br>
+                        <code>date_month</code> <span class="field-type">SMALLINT</span><br>
+                        <code>date_day</code> <span class="field-type">SMALLINT</span>
+                    </td>
+                    <td>When and where a release came out (e.g., "Blowin' in the Wind" covers by country)</td>
+                </tr>
+                <tr>
+                    <td class="table-name">isrc</td>
+                    <td>
+                        <code>id</code> <span class="field-type">INT</span><br>
+                        <code>recording</code> <span class="field-type">INT</span><br>
+                        <code>isrc</code> <span class="field-type">CHAR(12)</span><br>
+                        <code>source</code> <span class="field-type">SMALLINT</span>
+                    </td>
+                    <td>International Standard Recording Code - helps match with Spotify/streaming services</td>
+                </tr>
+                <tr>
+                    <td class="table-name">iswc</td>
+                    <td>
+                        <code>id</code> <span class="field-type">INT</span><br>
+                        <code>work</code> <span class="field-type">INT</span><br>
+                        <code>iswc</code> <span class="field-type">CHAR(15)</span>
+                    </td>
+                    <td>International Standard Work Code - unique identifier for compositions</td>
+                </tr>
+            </tbody>
+        </table>
+
+        <h3>🔗 Relationship Tables</h3>
+        <table>
+            <thead>
+                <tr>
+                    <th>Table Name</th>
+                    <th>Purpose</th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr>
+                    <td class="table-name">l_artist_work</td>
+                    <td>Links artists to works (e.g., Dylan as composer)</td>
+                </tr>
+                <tr>
+                    <td class="table-name">l_artist_recording</td>
+                    <td>Links artists to recordings (e.g., Hendrix performing "All Along the Watchtower")</td>
+                </tr>
+                <tr>
+                    <td class="table-name">link</td>
+                    <td>Generic relationship links between entities</td>
+                </tr>
+                <tr>
+                    <td class="table-name">link_type</td>
+                    <td>Defines relationship types (composer, lyricist, performer, etc.)</td>
+                </tr>
+            </tbody>
+        </table>
+    </div>
+
+    <!-- DUMP 2: DERIVED DATA -->
+    <div class="dump-section">
+        <div class="dump-header">
+            <div class="dump-icon">📊</div>
+            <div class="dump-title">
+                <h2 style="margin: 0;">2. mbdump-derived.tar.bz2 - Derived Data</h2>
+                <div class="dump-size">Size: ~470 MB | Contains: Computed statistics and annotations</div>
+            </div>
+        </div>
+
+        <p><strong>Purpose:</strong> Pre-computed data and user-contributed annotations. Less critical for core analysis but useful for context.</p>
+
+        <table>
+            <thead>
+                <tr>
+                    <th>Table Name</th>
+                    <th>Key Fields</th>
+                    <th>Purpose</th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr>
+                    <td class="table-name">annotation</td>
+                    <td>
+                        <code>id</code> <span class="field-type">INT</span><br>
+                        <code>editor</code> <span class="field-type">INT</span><br>
+                        <code>text</code> <span class="field-type">TEXT</span><br>
+                        <code>changelog</code> <span class="field-type">VARCHAR</span>
+                    </td>
+                    <td>User-contributed notes about artists/works/recordings (e.g., historical context, performance notes)</td>
+                </tr>
+                <tr>
+                    <td class="table-name">artist_rating</td>
+                    <td>
+                        <code>artist</code> <span class="field-type">INT</span><br>
+                        <code>rating</code> <span class="field-type">SMALLINT</span><br>
+                        <code>rating_count</code> <span class="field-type">INT</span>
+                    </td>
+                    <td>Community ratings for artists</td>
+                </tr>
+                <tr>
+                    <td class="table-name">recording_rating</td>
+                    <td>
+                        <code>recording</code> <span class="field-type">INT</span><br>
+                        <code>rating</code> <span class="field-type">SMALLINT</span><br>
+                        <code>rating_count</code> <span class="field-type">INT</span>
+                    </td>
+                    <td>Community ratings for recordings (could indicate notable covers)</td>
+                </tr>
+                <tr>
+                    <td class="table-name">work_rating</td>
+                    <td>
+                        <code>work</code> <span class="field-type">INT</span><br>
+                        <code>rating</code> <span class="field-type">SMALLINT</span><br>
+                        <code>rating_count</code> <span class="field-type">INT</span>
+                    </td>
+                    <td>Community ratings for works/compositions</td>
+                </tr>
+                <tr>
+                    <td class="table-name">tag</td>
+                    <td>
+                        <code>id</code> <span class="field-type">INT</span><br>
+                        <code>name</code> <span class="field-type">VARCHAR</span><br>
+                        <code>ref_count</code> <span class="field-type">INT</span>
+                    </td>
+                    <td>User-applied tags (genres, moods, themes)</td>
+                </tr>
+                <tr>
+                    <td class="table-name">artist_tag</td>
+                    <td>
+                        <code>artist</code> <span class="field-type">INT</span><br>
+                        <code>tag</code> <span class="field-type">INT</span><br>
+                        <code>count</code> <span class="field-type">INT</span>
+                    </td>
+                    <td>Tags applied to artists (e.g., "folk", "protest music", "60s")</td>
+                </tr>
+                <tr>
+                    <td class="table-name">recording_tag</td>
+                    <td>
+                        <code>recording</code> <span class="field-type">INT</span><br>
+                        <code>tag</code> <span class="field-type">INT</span><br>
+                        <code>count</code> <span class="field-type">INT</span>
+                    </td>
+                    <td>Tags for individual recordings (useful for genre classification)</td>
+                </tr>
+            </tbody>
+        </table>
+
+        <div class="note">
+            <strong>💡 Use Case:</strong> The annotation and tag tables can provide genre classification and cultural context for covers without manual research.
+        </div>
+    </div>
+
+    <!-- DUMP 3: EDIT HISTORY -->
+    <div class="dump-section">
+        <div class="dump-header">
+            <div class="dump-icon">📝</div>
+            <div class="dump-title">
+                <h2 style="margin: 0;">3. mbdump-edit.tar.bz2 - Edit History</h2>
+                <div class="dump-size">Size: ~14.6 GB | Contains: Complete edit history and voting records</div>
+            </div>
+        </div>
+
+        <p><strong>Purpose:</strong> Tracks every change ever made to the database. Largest file but least relevant for cover analysis. Mostly useful for data quality auditing.</p>
+
+        <table>
+            <thead>
+                <tr>
+                    <th>Table Name</th>
+                    <th>Purpose</th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr>
+                    <td class="table-name">edit</td>
+                    <td>Every modification made to the database (create, update, delete operations)</td>
+                </tr>
+                <tr>
+                    <td class="table-name">edit_artist</td>
+                    <td>Artist edits (e.g., when "Bob Dylan" entry was created/modified)</td>
+                </tr>
+                <tr>
+                    <td class="table-name">edit_work</td>
+                    <td>Work/composition edits (when Dylan songs were added)</td>
+                </tr>
+                <tr>
+                    <td class="table-name">edit_recording</td>
+                    <td>Recording edits (when covers were added to the database)</td>
+                </tr>
+                <tr>
+                    <td class="table-name">vote</td>
+                    <td>Community votes on proposed edits (quality control mechanism)</td>
+                </tr>
+                <tr>
+                    <td class="table-name">editor</td>
+                    <td>Users who contribute to MusicBrainz</td>
+                </tr>
+            </tbody>
+        </table>
+
+        <div class="note">
+            <strong>⚠️ Note:</strong> We don't need most of this data for Dylan analysis. The edit history is valuable for MusicBrainz's operations but not for our cover research. We import it for database completeness.
+        </div>
+    </div>
+
+    <!-- WORKFLOW -->
+    <div class="workflow">
+        <h2>🔍 Query Workflow for Dylan Cover Analysis</h2>
+        <p>How we'll use these tables to extract Dylan's covers:</p>
+        <ol>
+            <li><strong>Find Bob Dylan's Artist ID</strong>
+                <br><code>SELECT id FROM artist WHERE name = 'Bob Dylan'</code>
+            </li>
+            <li><strong>Find All Works by Bob Dylan</strong>
+                <br><code>SELECT w.* FROM work w JOIN l_artist_work law ON w.id = law.work WHERE law.artist = [dylan_id]</code>
+            </li>
+            <li><strong>Find All Recordings of Each Work</strong>
+                <br><code>SELECT r.* FROM recording r JOIN recording_work rw ON r.id = rw.recording WHERE rw.work_id = [work_id]</code>
+            </li>
+            <li><strong>Identify Covers (Non-Dylan Recordings)</strong>
+                <br><code>SELECT r.* FROM recording r JOIN artist_credit ac ON r.artist_credit = ac.id JOIN artist_credit_name acn ON ac.id = acn.artist_credit WHERE acn.artist != [dylan_id]</code>
+            </li>
+            <li><strong>Get Release Info for Each Cover</strong>
+                <br><code>SELECT rel.* FROM release rel JOIN medium m ON rel.id = m.release JOIN track t ON m.id = t.medium WHERE t.recording = [recording_id]</code>
+            </li>
+            <li><strong>Get Release Dates</strong>
+                <br><code>SELECT * FROM release_country WHERE release = [release_id] ORDER BY date_year, date_month, date_day LIMIT 1</code>
+            </li>
+            <li><strong>Enrich with Spotify (Post-Processing)</strong>
+                <br>Use ISRCs from the <code>isrc</code> table to match recordings with Spotify's API for popularity scores.
+            </li>
+        </ol>
+    </div>
+
+    <!-- VALIDATION CHECKS -->
+    <div class="dump-section">
+        <h2>✅ Validation Queries After Import</h2>
+        <p>Run these to verify the database imported correctly:</p>
+
+        <table>
+            <thead>
+                <tr>
+                    <th>Check</th>
+                    <th>SQL Query</th>
+                    <th>Expected Result</th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr>
+                    <td>Total artists</td>
+                    <td><code>SELECT COUNT(*) FROM artist;</code></td>
+                    <td>~2,000,000+ artists</td>
+                </tr>
+                <tr>
+                    <td>Total works</td>
+                    <td><code>SELECT COUNT(*) FROM work;</code></td>
+                    <td>~2,500,000+ compositions</td>
+                </tr>
+                <tr>
+                    <td>Total recordings</td>
+                    <td><code>SELECT COUNT(*) FROM recording;</code></td>
+                    <td>~30,000,000+ recordings</td>
+                </tr>
+                <tr class="important">
+                    <td>Bob Dylan exists</td>
+                    <td><code>SELECT * FROM artist WHERE name = 'Bob Dylan';</code></td>
+                    <td>Should return 1 row with Dylan's UUID</td>
+                </tr>
+                <tr class="important">
+                    <td>Dylan works count</td>
+                    <td><code>SELECT COUNT(*) FROM work w JOIN l_artist_work law ON w.id = law.work JOIN artist a ON law.artist = a.id WHERE a.name = 'Bob Dylan';</code></td>
+                    <td>~650 works</td>
+                </tr>
+                <tr class="important">
+                    <td>Sample work recordings</td>
+                    <td><code>SELECT COUNT(*) FROM recording r JOIN recording_work rw ON r.id = rw.recording JOIN work w ON rw.work_id = w.id WHERE w.name = 'Blowin'' in the Wind';</code></td>
+                    <td>Should be 400+ (not capped at 100!)</td>
+                </tr>
+            </tbody>
+        </table>
+    </div>
+
+    <!-- EXPORT SCHEMA -->
+    <div class="dump-section">
+        <h2>📤 Final CSV Export Schema</h2>
+        <p>After querying the database, we'll export these CSVs:</p>
+
+        <h3>dylan_works.csv</h3>
+        <table>
+            <thead>
+                <tr>
+                    <th>Column</th>
+                    <th>Type</th>
+                    <th>Source</th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr><td>work_id</td><td>UUID</td><td>work.gid</td></tr>
+                <tr><td>title</td><td>String</td><td>work.name</td></tr>
+                <tr><td>type</td><td>String</td><td>work.type (joined with work_type table)</td></tr>
+                <tr><td>language</td><td>String</td><td>work.language</td></tr>
+                <tr><td>iswc</td><td>String</td><td>iswc.iswc</td></tr>
+            </tbody>
+        </table>
+
+        <h3>dylan_covers.csv</h3>
+        <table>
+            <thead>
+                <tr>
+                    <th>Column</th>
+                    <th>Type</th>
+                    <th>Source</th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr><td>work_id</td><td>UUID</td><td>work.gid</td></tr>
+                <tr><td>work_title</td><td>String</td><td>work.name</td></tr>
+                <tr><td>recording_id</td><td>UUID</td><td>recording.gid</td></tr>
+                <tr><td>recording_title</td><td>String</td><td>recording.name</td></tr>
+                <tr><td>artist_names</td><td>String (semicolon-separated)</td><td>artist_credit.name</td></tr>
+                <tr><td>artist_ids</td><td>String (semicolon-separated)</td><td>artist.gid</td></tr>
+                <tr><td>is_bob_dylan</td><td>Boolean</td><td>Computed (artist_id == dylan_id)</td></tr>
+                <tr><td>recording_length_ms</td><td>Integer</td><td>recording.length</td></tr>
+                <tr><td>release_title</td><td>String</td><td>release.name</td></tr>
+                <tr><td>first_release_date</td><td>Date</td><td>release_country.date_*</td></tr>
+                <tr><td>isrcs</td><td>String (semicolon-separated)</td><td>isrc.isrc</td></tr>
+            </tbody>
+        </table>
+    </div>
+
+    <footer style="margin-top: 40px; padding-top: 20px; border-top: 2px solid #ddd; color: #7f8c8d; text-align: center;">
+        <p><strong>Dylan Cover Analysis</strong> | MusicBrainz Database: 20260502-002346</p>
+        <p>For questions about this schema, see: <a href="https://musicbrainz.org/doc/MusicBrainz_Database" target="_blank">MusicBrainz Database Documentation</a></p>
+    </footer>
+</body>
+</html>
