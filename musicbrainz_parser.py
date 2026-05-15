@@ -30,7 +30,8 @@ import os
 import time
 from dataclasses import dataclass
 from pathlib import Path
-from typing import Dict, Iterable, List, Optional, Tuple
+from collections.abc import Iterable
+from typing import Optional
 
 import pandas as pd
 import requests
@@ -102,7 +103,7 @@ class MusicBrainzParser:
     # ------------------------------------------------------------------
     # Public API
     # ------------------------------------------------------------------
-    def run(self) -> Tuple[pd.DataFrame, pd.DataFrame, pd.DataFrame]:
+    def run(self) -> tuple[pd.DataFrame, pd.DataFrame, pd.DataFrame]:
         """Execute the full extraction pipeline."""
 
         artist_id = self.get_artist_id()
@@ -157,8 +158,8 @@ class MusicBrainzParser:
                         self._artist_numeric_id,
                     )
                     return self._artist_id
-            except Exception:  # pragma: no cover - database path is optional
-                logger.exception("Failed to resolve artist via database, falling back to API")
+            except (OSError, RuntimeError) as exc:
+                logger.warning("Failed to resolve artist via database, falling back to API: %s", exc)
 
         logger.info(
             "Resolving MusicBrainz artist id for '%s' via web service",
@@ -198,9 +199,9 @@ class MusicBrainzParser:
             else:
                 try:
                     return self._fetch_works_from_db()
-                except Exception:  # pragma: no cover - fallback
-                    logger.exception(
-                        "Failed to fetch works from database, falling back to API"
+                except (OSError, RuntimeError) as exc:
+                    logger.warning(
+                        "Failed to fetch works from database, falling back to API: %s", exc
                     )
 
         return self._fetch_works_from_api(artist_id)
@@ -214,17 +215,14 @@ class MusicBrainzParser:
             SELECT
                 w.gid AS work_id,
                 w.name AS title,
-                wt.name AS work_type,
-                w.comment,
-                w.iswc,
-                w.edits_pending,
-                w.language,
-                w.lyric_language
+                wt.name AS type,
+                (SELECT i.iswc FROM iswc i WHERE i.work = w.id LIMIT 1) AS iswc,
+                w.comment AS disambiguation
             FROM work w
             LEFT JOIN work_type wt ON w.type = wt.id
             JOIN l_artist_work law ON law.entity1 = w.id
-            JOIN link l ON l.id = law.link
-            JOIN link_type lt ON lt.id = l.link_type
+            JOIN link lnk ON lnk.id = law.link
+            JOIN link_type lt ON lt.id = lnk.link_type
             WHERE law.entity0 = :artist_id
             ORDER BY w.name
             """
@@ -235,16 +233,21 @@ class MusicBrainzParser:
             works = [dict(row) for row in rows.mappings()]
 
         df = pd.DataFrame(works)
-        df.rename(columns={"work_type": "type"}, inplace=True)
-        df["aliases"] = ""
+        for col in ("aliases", "relations", "attributes"):
+            if col not in df.columns:
+                df[col] = ""
         df["relations"] = "database"
-        df["attributes"] = ""
+        expected = ["work_id", "title", "type", "language", "iswc", "aliases", "relations", "attributes", "disambiguation"]
+        for col in expected:
+            if col not in df.columns:
+                df[col] = None
+        df = df[expected]
         logger.info("Fetched %d works from database", len(df))
         return df
 
     def _fetch_works_from_api(self, artist_id: str) -> pd.DataFrame:
         logger.info("Fetching works for artist %s via MusicBrainz API", artist_id)
-        works: List[Dict[str, object]] = []
+        works: list[dict[str, object]] = []
         offset = 0
         limit = 100
 
@@ -289,20 +292,46 @@ class MusicBrainzParser:
         if works_df.empty:
             return pd.DataFrame()
 
-        recordings: List[Dict[str, object]] = []
-        for _, work in works_df.iterrows():
+        checkpoint_path = self.data_dir / "dylan_recordings_checkpoint.csv"
+        recordings: list[dict[str, object]] = []
+        completed_works: set[str] = set()
+
+        if checkpoint_path.exists():
+            checkpoint_df = pd.read_csv(checkpoint_path)
+            recordings = checkpoint_df.to_dict(orient="records")
+            completed_works = set(checkpoint_df["work_id"].unique())
+            logger.info(
+                "Resumed from checkpoint: %d recordings for %d works",
+                len(recordings), len(completed_works),
+            )
+
+        total = len(works_df)
+        for idx, (_, work) in enumerate(works_df.iterrows(), 1):
             work_id = work["work_id"]
+            if work_id in completed_works:
+                continue
             recordings.extend(self._fetch_recordings_for_work(work_id, work))
 
+            if idx % 50 == 0:
+                pd.DataFrame(recordings).to_csv(checkpoint_path, index=False)
+                logger.info("Checkpoint saved: %d/%d works, %d recordings", idx, total, len(recordings))
+
         df = pd.DataFrame(recordings)
-        logger.info("Fetched %d recordings", len(df))
+        pre_dedup = len(df)
+        if not df.empty:
+            df = df.drop_duplicates(subset="recording_id", keep="first")
+        logger.info("Fetched %d recordings (%d before dedup)", len(df), pre_dedup)
+
+        if checkpoint_path.exists():
+            checkpoint_path.unlink()
+
         return df
 
-    def _fetch_recordings_for_work(self, work_id: str, work_row: pd.Series) -> List[Dict[str, object]]:
+    def _fetch_recordings_for_work(self, work_id: str, work_row: pd.Series) -> list[dict[str, object]]:
         logger.debug("Fetching recordings for work %s", work_id)
         limit = 100
         offset = 0
-        results: List[Dict[str, object]] = []
+        results: list[dict[str, object]] = []
 
         while True:
             params = {
@@ -318,24 +347,25 @@ class MusicBrainzParser:
                 artist_names = [credit.get("name") for credit in artist_credit if credit.get("name")]
                 artist_ids = [credit.get("artist", {}).get("id") for credit in artist_credit]
 
-                releases = recording.get("releases", []) or [{}]
-                for release in releases:
-                    results.append(
-                        {
-                            "work_id": work_id,
-                            "work_title": work_row.get("title"),
-                            "recording_id": recording.get("id"),
-                            "recording_title": recording.get("title"),
-                            "recording_length_ms": recording.get("length"),
-                            "artist_names": _normalise_list(artist_names),
-                            "artist_ids": _normalise_list(artist_ids),
-                            "is_bob_dylan": self._is_bob_dylan_recording(artist_credit),
-                            "release_id": release.get("id"),
-                            "release_title": release.get("title"),
-                            "first_release_date": release.get("date") or recording.get("first-release-date"),
-                            "isrcs": _normalise_list(recording.get("isrcs")),
-                        }
-                    )
+                # Pick the earliest release to avoid per-release row duplication
+                release = self._pick_earliest_release(recording.get("releases") or [])
+
+                results.append(
+                    {
+                        "work_id": work_id,
+                        "work_title": work_row.get("title"),
+                        "recording_id": recording.get("id"),
+                        "recording_title": recording.get("title"),
+                        "recording_length_ms": recording.get("length"),
+                        "artist_names": _normalise_list(artist_names),
+                        "artist_ids": _normalise_list(artist_ids),
+                        "is_bob_dylan": self._is_bob_dylan_recording(artist_credit),
+                        "release_id": release.get("id"),
+                        "release_title": release.get("title"),
+                        "first_release_date": release.get("date") or recording.get("first-release-date"),
+                        "isrcs": _normalise_list(recording.get("isrcs")),
+                    }
+                )
 
             if offset + limit >= data.get("count", 0):
                 break
@@ -345,7 +375,16 @@ class MusicBrainzParser:
             logger.debug("Retrieved %d recordings for work %s", len(results), work_id)
         return results
 
-    def _is_bob_dylan_recording(self, artist_credit: List[Dict[str, object]]) -> bool:
+    @staticmethod
+    def _pick_earliest_release(releases: list[dict]) -> dict:
+        """Return the release with the earliest date, or the first one."""
+        if not releases:
+            return {}
+        dated = [(r, r.get("date", "") or "") for r in releases]
+        dated.sort(key=lambda pair: pair[1] if pair[1] else "9999")
+        return dated[0][0]
+
+    def _is_bob_dylan_recording(self, artist_credit: list[dict[str, object]]) -> bool:
         target_id = self._artist_id
         for credit in artist_credit:
             artist = credit.get("artist")
@@ -370,19 +409,25 @@ class MusicBrainzParser:
     # ------------------------------------------------------------------
     # HTTP helper
     # ------------------------------------------------------------------
-    def _get_json(self, endpoint: str, params: Dict[str, object]) -> Dict[str, object]:
-        """Perform a GET request against the MusicBrainz web service."""
+    def _get_json(self, endpoint: str, params: dict[str, object], _max_retries: int = 5) -> dict[str, object]:
+        """Perform a GET request against the MusicBrainz web service with exponential backoff."""
 
         url = f"{self.base_url}/{endpoint}"
-        response = self.session.get(url, params=params, timeout=60)
-        if response.status_code == 503 and "Retry-After" in response.headers:
-            wait_time = int(response.headers["Retry-After"]) + 1
-            logger.warning("Rate limited by MusicBrainz, sleeping for %s seconds", wait_time)
-            time.sleep(wait_time)
+        for attempt in range(_max_retries):
             response = self.session.get(url, params=params, timeout=60)
+            if response.status_code == 503:
+                wait_time = int(response.headers.get("Retry-After", 2 ** attempt)) + 1
+                logger.warning(
+                    "Rate limited by MusicBrainz (attempt %d/%d), sleeping %ds",
+                    attempt + 1, _max_retries, wait_time,
+                )
+                time.sleep(wait_time)
+                continue
+            response.raise_for_status()
+            time.sleep(self.config.sleep_seconds)
+            return response.json()
 
         response.raise_for_status()
-        time.sleep(self.config.sleep_seconds)
         return response.json()
 
 

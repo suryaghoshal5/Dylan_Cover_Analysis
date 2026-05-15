@@ -1,0 +1,690 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>The Geography of Interpretation — Dylan Cover Analysis</title>
+<script src="https://cdn.plot.ly/plotly-2.35.0.min.js"></script>
+<style>
+  :root {
+    --bg: #f7f8f5;
+    --bg-card: #ffffff;
+    --bg-section: #eef0e8;
+    --accent: #2d5f4a;
+    --accent-light: #3d8b6a;
+    --terracotta: #c06040;
+    --ochre: #c49a3c;
+    --slate: #455a64;
+    --indigo: #3f4fa0;
+    --text: #1a1c1a;
+    --text-muted: #44504a;
+    --text-dim: #7a8a80;
+    --serif: 'Georgia', 'Times New Roman', serif;
+    --sans: 'Helvetica Neue', Arial, sans-serif;
+    --mono: 'SF Mono', 'Fira Code', monospace;
+  }
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body {
+    background: var(--bg);
+    color: var(--text);
+    font-family: var(--sans);
+    line-height: 1.7;
+    -webkit-font-smoothing: antialiased;
+  }
+  .container { max-width: 900px; margin: 0 auto; padding: 0 24px; }
+
+  .hero {
+    min-height: 100vh;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    text-align: center;
+    background: linear-gradient(180deg, #1a2a22 0%, #2a3d32 40%, var(--bg-section) 100%);
+    color: #eef0e8;
+    position: relative;
+    overflow: hidden;
+  }
+  .hero::before {
+    content: '';
+    position: absolute;
+    top: -50%; left: -50%;
+    width: 200%; height: 200%;
+    background: radial-gradient(circle at 25% 35%, rgba(192,96,64,0.07) 0%, transparent 50%),
+                radial-gradient(circle at 75% 65%, rgba(63,79,160,0.06) 0%, transparent 50%);
+    animation: drift 25s ease-in-out infinite;
+  }
+  @keyframes drift {
+    0%, 100% { transform: translate(0, 0) rotate(0deg); }
+    33% { transform: translate(2%, -1%) rotate(1deg); }
+    66% { transform: translate(-1%, 2%) rotate(-1deg); }
+  }
+  .hero-content { position: relative; z-index: 1; }
+  .hero-label {
+    font-family: var(--mono);
+    font-size: 0.75rem;
+    letter-spacing: 3px;
+    text-transform: uppercase;
+    color: var(--ochre);
+    margin-bottom: 24px;
+  }
+  .hero h1 {
+    font-family: var(--serif);
+    font-size: clamp(2.2rem, 5vw, 3.6rem);
+    font-weight: 400;
+    line-height: 1.15;
+    max-width: 700px;
+    margin: 0 auto 32px;
+    color: #eef0e8;
+  }
+  .hero h1 em { font-style: italic; color: var(--ochre); }
+  .hero-sub {
+    font-size: 1.15rem;
+    color: #a0b0a8;
+    max-width: 620px;
+    margin: 0 auto 48px;
+    line-height: 1.8;
+  }
+  .hero-stats {
+    display: flex;
+    gap: 48px;
+    justify-content: center;
+    flex-wrap: wrap;
+  }
+  .hero-stat .number {
+    font-family: var(--mono);
+    font-size: 2.4rem;
+    font-weight: 700;
+    color: var(--ochre);
+    display: block;
+  }
+  .hero-stat .label {
+    font-size: 0.8rem;
+    color: #7a8a80;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+  }
+  .scroll-hint {
+    position: absolute;
+    bottom: 40px;
+    left: 50%;
+    transform: translateX(-50%);
+    color: #7a8a80;
+    font-size: 0.75rem;
+    letter-spacing: 2px;
+    text-transform: uppercase;
+    animation: pulse 2s ease-in-out infinite;
+  }
+  @keyframes pulse { 0%, 100% { opacity: 0.4; } 50% { opacity: 1; } }
+
+  section {
+    padding: 100px 0;
+  }
+
+  h2 {
+    font-family: var(--serif);
+    font-size: clamp(1.6rem, 3.5vw, 2.4rem);
+    font-weight: 400;
+    margin-bottom: 16px;
+    line-height: 1.3;
+  }
+  h3 {
+    font-family: var(--serif);
+    font-size: 1.3rem;
+    font-weight: 400;
+    color: var(--accent);
+    margin-bottom: 12px;
+  }
+  .section-lead {
+    font-size: 1.1rem;
+    color: var(--text-muted);
+    margin-bottom: 40px;
+    max-width: 700px;
+    line-height: 1.8;
+  }
+
+  .chart-wrap {
+    margin: 48px 0;
+    background: var(--bg-card);
+    border-radius: 12px;
+    padding: 32px 24px;
+    box-shadow: 0 2px 12px rgba(0,0,0,0.04);
+  }
+  .chart-title {
+    font-family: var(--serif);
+    font-size: 1.15rem;
+    margin-bottom: 4px;
+  }
+  .chart-subtitle {
+    font-size: 0.85rem;
+    color: var(--text-dim);
+    margin-bottom: 16px;
+  }
+
+  .callout {
+    background: var(--bg-section);
+    border-left: 4px solid var(--terracotta);
+    padding: 24px 28px;
+    border-radius: 0 8px 8px 0;
+    margin: 40px 0;
+    font-size: 1rem;
+    line-height: 1.8;
+  }
+  .callout strong { color: var(--accent); }
+
+  .stat-row {
+    display: flex;
+    gap: 24px;
+    flex-wrap: wrap;
+    margin: 40px 0;
+  }
+  .stat-card {
+    flex: 1;
+    min-width: 180px;
+    background: var(--bg-card);
+    border-radius: 10px;
+    padding: 24px;
+    text-align: center;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.04);
+  }
+  .stat-card .big {
+    font-family: var(--mono);
+    font-size: 2rem;
+    font-weight: 700;
+    color: var(--accent);
+    display: block;
+    margin-bottom: 4px;
+  }
+  .stat-card .desc {
+    font-size: 0.85rem;
+    color: var(--text-dim);
+  }
+
+  /* Country cards */
+  .country-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+    gap: 20px;
+    margin: 40px 0;
+  }
+  .country-card {
+    background: var(--bg-card);
+    border-radius: 10px;
+    padding: 24px;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.04);
+    transition: transform 0.2s, box-shadow 0.2s;
+    position: relative;
+    overflow: hidden;
+  }
+  .country-card:hover {
+    transform: translateY(-3px);
+    box-shadow: 0 6px 20px rgba(0,0,0,0.08);
+  }
+  .country-card .flag {
+    font-size: 2rem;
+    margin-bottom: 8px;
+  }
+  .country-card .name {
+    font-family: var(--serif);
+    font-size: 1.15rem;
+    margin-bottom: 4px;
+  }
+  .country-card .stats-line {
+    font-size: 0.85rem;
+    color: var(--text-muted);
+    margin-bottom: 12px;
+  }
+  .country-card .stats-line strong { color: var(--text); }
+  .country-card .artist-list {
+    font-size: 0.82rem;
+    color: var(--text-dim);
+    line-height: 1.6;
+  }
+  .country-card .accent-bar {
+    position: absolute;
+    top: 0; left: 0;
+    width: 100%;
+    height: 4px;
+  }
+
+  /* Translation table */
+  .trans-table {
+    width: 100%;
+    border-collapse: collapse;
+    margin: 24px 0;
+    font-size: 0.9rem;
+  }
+  .trans-table th {
+    text-align: left;
+    padding: 10px 14px;
+    font-family: var(--mono);
+    font-size: 0.72rem;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    color: var(--text-dim);
+    border-bottom: 2px solid #dde0d8;
+  }
+  .trans-table td {
+    padding: 8px 14px;
+    border-bottom: 1px solid #e8ebe4;
+    vertical-align: middle;
+  }
+  .trans-table tr:hover td { background: rgba(45,95,74,0.03); }
+  .trans-table .local { font-style: italic; color: var(--terracotta); }
+  .trans-table .arrow { color: var(--text-dim); text-align: center; }
+
+  .trans-country-label {
+    font-family: var(--mono);
+    font-size: 0.75rem;
+    text-transform: uppercase;
+    letter-spacing: 2px;
+    color: var(--accent);
+    margin: 32px 0 12px;
+    padding-bottom: 8px;
+    border-bottom: 1px solid #dde0d8;
+  }
+
+  .divider {
+    width: 60px;
+    height: 2px;
+    background: var(--terracotta);
+    margin: 60px auto;
+  }
+
+  .closing {
+    text-align: center;
+    padding: 80px 24px;
+    background: var(--bg-section);
+  }
+  .closing h2 {
+    font-family: var(--serif);
+    font-size: 1.8rem;
+    margin-bottom: 16px;
+  }
+  .closing p {
+    font-size: 1.05rem;
+    color: var(--text-muted);
+    max-width: 620px;
+    margin: 0 auto;
+    line-height: 1.8;
+  }
+
+  footer {
+    text-align: center;
+    padding: 32px;
+    font-size: 0.75rem;
+    color: var(--text-dim);
+  }
+</style>
+</head>
+<body>
+
+<header class="hero">
+  <div class="hero-content">
+    <div class="hero-label">Dylan Cover Analysis &middot; Story 6</div>
+    <h1>The <em>Geography</em> of Interpretation</h1>
+    <p class="hero-sub">
+      From Hugues Aufray&rsquo;s French translations to Wolfgang Niedecken&rsquo;s
+      Cologne dialect adaptations, Dylan&rsquo;s songs have been rewritten
+      in at least seven languages across thirteen countries.
+      What survives translation reveals what&rsquo;s essential.
+    </p>
+    <div class="hero-stats">
+      <div class="hero-stat">
+        <span class="number">14</span>
+        <span class="label">Countries</span>
+      </div>
+      <div class="hero-stat">
+        <span class="number">7+</span>
+        <span class="label">Languages</span>
+      </div>
+      <div class="hero-stat">
+        <span class="number">4,183</span>
+        <span class="label">Classified covers</span>
+      </div>
+    </div>
+  </div>
+  <div class="scroll-hint">&darr; Scroll to explore</div>
+</header>
+
+<!-- SECTION 1: The Map -->
+<section id="sec-map">
+  <div class="container">
+    <h2>A Global Phenomenon</h2>
+    <p class="section-lead">
+      Dylan&rsquo;s influence radiates outward from America in concentric circles:
+      the Anglophone world first, then Western Europe, then further afield.
+      But the nature of interpretation changes with distance &mdash; English-speaking
+      countries cover Dylan in English; everyone else <em>translates</em> him.
+    </p>
+
+    <div class="chart-wrap">
+      <div class="chart-title">Covers by country</div>
+      <div class="chart-subtitle">Number of cover recordings from classified artists by country of origin</div>
+      <div id="chart-countries" style="width:100%;height:480px;"></div>
+    </div>
+
+    <div class="stat-row">
+      <div class="stat-card">
+        <span class="big">64%</span>
+        <span class="desc">From United States</span>
+      </div>
+      <div class="stat-card">
+        <span class="big">14%</span>
+        <span class="desc">From United Kingdom</span>
+      </div>
+      <div class="stat-card">
+        <span class="big">22%</span>
+        <span class="desc">Rest of world</span>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- SECTION 2: Country Profiles -->
+<section id="sec-profiles">
+  <div class="container">
+    <h2>The Nations of Dylan</h2>
+    <p class="section-lead">
+      Each country&rsquo;s relationship with Dylan tells a different story.
+      France has a single champion who translated an entire catalogue.
+      Germany has a poet who rewrote Dylan in Cologne dialect.
+      Sweden and Poland built whole cottage industries of translation.
+    </p>
+
+    <div class="country-grid" id="country-grid"></div>
+  </div>
+</section>
+
+<!-- SECTION 3: The Translators -->
+<section id="sec-translations">
+  <div class="container">
+    <h2>Lost &amp; Found in Translation</h2>
+    <p class="section-lead">
+      The most fascinating covers aren&rsquo;t performances &mdash; they&rsquo;re
+      <em>translations</em>. Artists in six countries have rewritten Dylan&rsquo;s lyrics
+      in their own languages, forcing choices about what matters most:
+      the literal meaning, the meter, the rhyme, or the feeling.
+    </p>
+
+    <div class="callout">
+      <p>
+        <strong>Hugues Aufray</strong> has been translating Dylan into French since 1964 &mdash;
+        176 recordings across 26 songs. His version of &ldquo;The Times They Are A-Changin&rsquo;&rdquo;
+        became &ldquo;Les temps changent&rdquo; and entered the French canon on its own terms.
+        Aufray didn&rsquo;t just translate words; he created a parallel Dylan in French.
+      </p>
+    </div>
+
+    <div id="translations-container"></div>
+
+    <div class="callout" style="border-left-color: var(--indigo); margin-top: 48px;">
+      <p>
+        <strong>Wolfgang Niedecken</strong> went further than translation: he rewrote Dylan
+        in K&ouml;lsch, the dialect of Cologne. &ldquo;Like a Rolling Stone&rdquo; became
+        &ldquo;Allan wia a Stan&rdquo; in Viennese dialect (via Wolfgang Ambros),
+        while &ldquo;I Want You&rdquo; became &ldquo;Ich will dich&rdquo; in standard German.
+        70 recordings make Niedecken Dylan&rsquo;s most prolific German interpreter.
+      </p>
+    </div>
+  </div>
+</section>
+
+<!-- SECTION 4: Songs That Cross Borders -->
+<section id="sec-global-songs">
+  <div class="container">
+    <h2>Songs That Cross Every Border</h2>
+    <p class="section-lead">
+      Eight Dylan songs have been covered by artists from five or more countries.
+      These are the songs whose meaning transcends their original language and
+      cultural moment &mdash; truly universal compositions.
+    </p>
+
+    <div class="chart-wrap">
+      <div class="chart-title">The most international Dylan songs</div>
+      <div class="chart-subtitle">Songs covered by artists from 5+ countries, with country breakdown</div>
+      <div id="chart-global-songs" style="width:100%;height:440px;"></div>
+    </div>
+
+    <div class="callout">
+      <p>
+        <strong>&ldquo;Blowin&rsquo; in the Wind&rdquo;</strong> reaches the most countries (7),
+        but <strong>&ldquo;Knockin&rsquo; on Heaven&rsquo;s Door&rdquo;</strong> has the most
+        total covers (684) across 6 countries. The simplest songs travel furthest:
+        universal emotions expressed in universal language.
+      </p>
+    </div>
+  </div>
+</section>
+
+<!-- SECTION 5: Repertoire Diversity -->
+<section id="sec-repertoire">
+  <div class="container">
+    <h2>Breadth vs. Depth</h2>
+    <p class="section-lead">
+      Some countries know a wide Dylan &mdash; dozens of deep cuts and album tracks.
+      Others focus on the greatest hits. The ratio of unique songs to total covers
+      reveals how deeply each country has explored the catalogue.
+    </p>
+
+    <div class="chart-wrap">
+      <div class="chart-title">Catalogue depth by country</div>
+      <div class="chart-subtitle">Unique songs covered vs. total cover recordings (non-US, non-UK)</div>
+      <div id="chart-depth" style="width:100%;height:420px;"></div>
+    </div>
+
+    <div class="stat-row">
+      <div class="stat-card">
+        <span class="big">26</span>
+        <span class="desc">Songs covered in France</span>
+      </div>
+      <div class="stat-card">
+        <span class="big">44</span>
+        <span class="desc">Songs covered in Germany</span>
+      </div>
+      <div class="stat-card">
+        <span class="big">31</span>
+        <span class="desc">Songs covered in Sweden</span>
+      </div>
+    </div>
+  </div>
+</section>
+
+<div class="divider"></div>
+
+<section class="closing">
+  <h2>What Survives Translation Is the Song</h2>
+  <p>
+    When Hugues Aufray turned &ldquo;Blowin&rsquo; in the Wind&rdquo; into
+    &ldquo;Dans le souffle du vent,&rdquo; he kept the melody and the question.
+    When Wolfgang Niedecken rewrote &ldquo;I Want You&rdquo; in K&ouml;lsch, he kept
+    the longing. What crosses every border isn&rsquo;t the English words or
+    the American context. It&rsquo;s the architecture of feeling
+    that Dylan built into each song.
+  </p>
+</section>
+
+<footer>
+  <p>Dylan Cover Analysis &middot; Story 6 &middot; Data from MusicBrainz &amp; Spotify &middot; 10,444 covers analyzed</p>
+</footer>
+
+<script>
+const FLAGS = {
+  'United States': '🇺🇸', 'United Kingdom': '🇬🇧', 'Canada': '🇨🇦',
+  'Ireland': '🇮🇪', 'France': '🇫🇷', 'Germany': '🇩🇪',
+  'Australia': '🇦🇺', 'Greece': '🇬🇷', 'Poland': '🇵🇱',
+  'Sweden': '🇸🇪', 'Norway': '🇳🇴', 'Italy': '🇮🇹', 'Jamaica': '🇯🇲'
+};
+const COUNTRY_COLORS = {
+  'United States': '#3f4fa0', 'United Kingdom': '#c06040', 'Canada': '#c49a3c',
+  'Ireland': '#2d5f4a', 'France': '#6a4fa0', 'Germany': '#455a64',
+  'Australia': '#8b6e3c', 'Greece': '#3a7da0', 'Poland': '#a04040',
+  'Sweden': '#4a8060', 'Norway': '#5070a0', 'Italy': '#a06040', 'Jamaica': '#60a040'
+};
+
+const COUNTRIES = [{"country": "United States", "covers": 2667, "unique_artists": 153, "unique_songs": 147, "avg_pop": 32.9, "top_artists": [{"name": "The Byrds", "covers": 543}, {"name": "Grateful Dead", "covers": 494}, {"name": "Joan Baez", "covers": 259}, {"name": "Jerry Garcia Band", "covers": 128}, {"name": "Bruce Springsteen", "covers": 105}], "top_songs": [{"song": "All Along the Watchtower", "covers": 283}, {"song": "Mr. Tambourine Man", "covers": 222}, {"song": "It’s All Over Now, Baby Blue", "covers": 134}, {"song": "Chimes of Freedom", "covers": 116}, {"song": "When I Paint My Masterpiece", "covers": 106}], "has_translations": false}, {"country": "United Kingdom", "covers": 568, "unique_artists": 28, "unique_songs": 88, "avg_pop": 29.4, "top_artists": [{"name": "George Harrison", "covers": 158}, {"name": "Eric Clapton", "covers": 104}, {"name": "Manfred Mann’s Earth Band", "covers": 88}, {"name": "Bryan Ferry", "covers": 63}, {"name": "Fairport Convention", "covers": 61}], "top_songs": [{"song": "Knockin’ on Heaven’s Door", "covers": 62}, {"song": "Quinn the Eskimo (The Mighty Quinn)", "covers": 59}, {"song": "If Not for You", "covers": 33}, {"song": "I Don't Want to Do It", "covers": 29}, {"song": "Make You Feel My Love", "covers": 21}], "has_translations": false}, {"country": "Canada", "covers": 351, "unique_artists": 23, "unique_songs": 28, "avg_pop": 36.3, "top_artists": [{"name": "The Band", "covers": 239}, {"name": "Neil Young", "covers": 46}, {"name": "Neil Young & Crazy Horse", "covers": 20}, {"name": "Neil Young & His Electric Band", "covers": 11}, {"name": "Neil Young & Booker T. & the MG’s", "covers": 7}], "top_songs": [{"song": "I Shall Be Released", "covers": 83}, {"song": "This Wheel’s on Fire", "covers": 63}, {"song": "All Along the Watchtower", "covers": 51}, {"song": "Tears of Rage", "covers": 36}, {"song": "When I Paint My Masterpiece", "covers": 22}], "has_translations": false}, {"country": "Ireland", "covers": 233, "unique_artists": 13, "unique_songs": 11, "avg_pop": 54.5, "top_artists": [{"name": "U2", "covers": 199}, {"name": "Van Morrison", "covers": 20}, {"name": "U2 feat. Ziggy Marley & The Melody Makers", "covers": 2}, {"name": "U2 with Maria McKee", "covers": 2}, {"name": "Van Morrison feat. Chris Farlowe", "covers": 2}], "top_songs": [{"song": "Knockin’ on Heaven’s Door", "covers": 56}, {"song": "All Along the Watchtower", "covers": 44}, {"song": "Maggie’s Farm", "covers": 35}, {"song": "Love Rescue Me", "covers": 33}, {"song": "I Shall Be Released", "covers": 21}], "has_translations": false}, {"country": "Germany", "covers": 109, "unique_artists": 12, "unique_songs": 44, "avg_pop": 18.5, "top_artists": [{"name": "Wolfgang Niedecken", "covers": 37}, {"name": "James Last", "covers": 32}, {"name": "Wolfgang Ambros", "covers": 25}, {"name": "Wolfgang Ambros & Rainhard Fendrich", "covers": 4}, {"name": "James Last Band", "covers": 2}], "top_songs": [{"song": "Mr. Tambourine Man", "covers": 13}, {"song": "Ballad of Easy Rider", "covers": 12}, {"song": "Blowin’ in the Wind", "covers": 9}, {"song": "Für immer jung", "covers": 8}, {"song": "Corrina, Corrina", "covers": 6}], "has_translations": true}, {"country": "France", "covers": 93, "unique_artists": 13, "unique_songs": 26, "avg_pop": 10.4, "top_artists": [{"name": "Hugues Aufray", "covers": 80}, {"name": "Hugues Aufray et son Skiffle Group", "covers": 2}, {"name": "Hugues Aufray en duo avec Alain Souchon", "covers": 1}, {"name": "Hugues Aufray en duo avec Arno", "covers": 1}, {"name": "Hugues Aufray en duo avec Bernard Lavilliers", "covers": 1}], "top_songs": [{"song": "La Fille du nord", "covers": 13}, {"song": "N'y pense plus, tout est bien", "covers": 12}, {"song": "L’Homme orchestre", "covers": 7}, {"song": "Cauchemar psychomoteur", "covers": 5}, {"song": "Le Jour où le bateau viendra", "covers": 5}], "has_translations": true}, {"country": "Sweden", "covers": 43, "unique_artists": 5, "unique_songs": 31, "avg_pop": 12.5, "top_artists": [{"name": "Mikael Wiehe & Ebba Forsberg", "covers": 15}, {"name": "Totta & Wiehe", "covers": 14}, {"name": "Mikael Wiehe, Nyberg, Franck & Fjellis", "covers": 7}, {"name": "Mikael Wiehe", "covers": 5}, {"name": "Mikael Wiehe och Kabaréorkestern", "covers": 2}], "top_songs": [{"song": "Vi låter oss inte besegras", "covers": 4}, {"song": "Ni som tjänar på krig", "covers": 3}, {"song": "Adjö Angelina", "covers": 2}, {"song": "Blinde Will McTell", "covers": 2}, {"song": "Jag ska bli fri", "covers": 2}], "has_translations": true}, {"country": "Australia", "covers": 42, "unique_artists": 5, "unique_songs": 7, "avg_pop": 22.5, "top_artists": [{"name": "The Seekers", "covers": 26}, {"name": "Nick Cave & the Bad Seeds", "covers": 11}, {"name": "Judith Durham & The Seekers", "covers": 2}, {"name": "Nick Cave and the Bad Seeds", "covers": 2}, {"name": "Nick Cave & Shane MacGowan & Kylie Minogue & PJ Harvey & Anita Lane", "covers": 1}], "top_songs": [{"song": "Blowin’ in the Wind", "covers": 11}, {"song": "Don’t Think Twice, It’s All Right", "covers": 10}, {"song": "Wanted Man", "covers": 9}, {"song": "The Times They Are A‐Changin’", "covers": 7}, {"song": "Death Is Not the End", "covers": 3}], "has_translations": false}, {"country": "Poland", "covers": 29, "unique_artists": 7, "unique_songs": 29, "avg_pop": 4.4, "top_artists": [{"name": "dylan.pl", "covers": 22}, {"name": "dylan.pl, Maria Sadowska", "covers": 2}, {"name": "dylan.pl, Pablopavo", "covers": 1}, {"name": "dylan.pl, Tadeusz Woźniak", "covers": 1}, {"name": "dylan.pl, Tomek Organek", "covers": 1}], "top_songs": [{"song": "Adam dał imiona zwierzętom", "covers": 1}, {"song": "Miłość bez zera/Żadnych ograniczeń", "covers": 1}, {"song": "Tęskny jazz o podziemiu", "covers": 1}, {"song": "Señor (Z dziejów jankeskiej potęgi)", "covers": 1}, {"song": "Romans w Durango", "covers": 1}], "has_translations": true}, {"country": "Greece", "covers": 26, "unique_artists": 3, "unique_songs": 6, "avg_pop": 13.6, "top_artists": [{"name": "Nana Mouskouri", "covers": 24}, {"name": "Nana Mouskouri Duet with Stig Rossen", "covers": 1}, {"name": "Nana Mouskouri avec Roch Voisine", "covers": 1}], "top_songs": [{"song": "Adieu Angelina", "covers": 10}, {"song": "Every Grain of Sand", "covers": 5}, {"song": "Dignity", "covers": 3}, {"song": "I'll Remember You", "covers": 3}, {"song": "Tomorrow Is a Long Time", "covers": 3}], "has_translations": true}, {"country": "Norway", "covers": 14, "unique_artists": 1, "unique_songs": 14, "avg_pop": 2.5, "top_artists": [{"name": "Jan Erik Vold, Kåre Virud & Telemark Blueslag", "covers": 14}], "top_songs": [{"song": "Damer i regn", "covers": 1}, {"song": "Du skal ha flaks for å flire, du skal ha tur for å ta trikk", "covers": 1}, {"song": "Europaveien rundt", "covers": 1}, {"song": "Ingentingen kom fram", "covers": 1}, {"song": "Kjære gårdeier", "covers": 1}], "has_translations": true}, {"country": "Italy", "covers": 6, "unique_artists": 3, "unique_songs": 2, "avg_pop": 20.4, "top_artists": [{"name": "Fabrizio De André", "covers": 4}, {"name": "Fabrizio De André & PFM", "covers": 1}, {"name": "Fabrizio De André con i New Trolls", "covers": 1}], "top_songs": [{"song": "Avventura a Durango", "covers": 4}, {"song": "Via della Povertà", "covers": 2}], "has_translations": true}, {"country": "India", "covers": 4, "unique_artists": 4, "unique_songs": 3, "avg_pop": 15.0, "top_artists": [{"name": "George Harrison & Ravi Shankar", "covers": 1}, {"name": "Lou Majaw", "covers": 1}, {"name": "Kabir Suman", "covers": 1}, {"name": "Anjan Dutt", "covers": 1}], "top_songs": [{"song": "Abandoned Love", "covers": 1}], "has_translations": true}, {"country": "Jamaica", "covers": 1, "unique_artists": 1, "unique_songs": 1, "avg_pop": 38.0, "top_artists": [{"name": "Jimmy Cliff", "covers": 1}], "top_songs": [{"song": "Hard Rain’s A‐Gonna Fall", "covers": 1}], "has_translations": false}];
+
+const GLOBAL_SONGS = [{"song": "Blowin’ in the Wind", "total_covers": 106, "num_countries": 5, "countries": [{"country": "United States", "covers": 61}, {"country": "Canada", "covers": 21}, {"country": "Australia", "covers": 11}, {"country": "Germany", "covers": 9}, {"country": "Ireland", "covers": 4}]}, {"song": "Knockin’ on Heaven’s Door", "total_covers": 223, "num_countries": 5, "countries": [{"country": "United States", "covers": 103}, {"country": "United Kingdom", "covers": 62}, {"country": "Ireland", "covers": 56}, {"country": "Australia", "covers": 1}, {"country": "Canada", "covers": 1}]}, {"song": "The Times They Are A‐Changin’", "total_covers": 67, "num_countries": 5, "countries": [{"country": "United States", "covers": 43}, {"country": "Ireland", "covers": 10}, {"country": "Australia", "covers": 7}, {"country": "United Kingdom", "covers": 6}, {"country": "Canada", "covers": 1}]}];
+
+const TRANSLATIONS = {"France": [{"local": "Les temps changent", "english": "The Times They Are A-Changin'", "artist": "Hugues Aufray"}, {"local": "Comme des pierres qui roulent", "english": "Like a Rolling Stone", "artist": "Hugues Aufray"}, {"local": "Cauchemar psychomoteur", "english": "Subterranean Homesick Blues", "artist": "Hugues Aufray"}, {"local": "N'y pense plus, tout est bien", "english": "Don't Think Twice, It's All Right", "artist": "Hugues Aufray"}, {"local": "La Fille du nord", "english": "Girl From the North Country", "artist": "Hugues Aufray"}, {"local": "Dans le souffle du vent", "english": "Blowin' in the Wind", "artist": "Hugues Aufray"}], "Germany": [{"local": "Die Antwort weiß ganz allein der Wind", "english": "Blowin' in the Wind", "artist": "Marlene Dietrich"}, {"local": "Für immer jung", "english": "Forever Young", "artist": "Wolfgang Niedecken et al."}, {"local": "Als ob se'n Frau wöhr", "english": "Just Like a Woman", "artist": "Wolfgang Niedecken"}, {"local": "Allan wia a Stan", "english": "Like a Rolling Stone", "artist": "Wolfgang Ambros"}], "Sweden": [{"local": "Adjö Angelina", "english": "Farewell Angelina", "artist": "Totta & Wiehe"}, {"local": "Dagen är kommen", "english": "The Times They Are A-Changin'", "artist": "Totta & Wiehe"}], "Poland": [{"local": "Czasy nadchodzą nowe", "english": "The Times They Are A-Changin'", "artist": "Dylan.pl"}], "Italy": [{"local": "Via della Povertà", "english": "Desolation Row", "artist": "Fabrizio De André"}], "Norway": [{"local": "Damer i regn", "english": "Rainy Day Women", "artist": "Jan Erik Vold"}], "India": [{"local": "Er Gaan (Bengali)", "english": "Blowin' in the Wind", "artist": "Kabir Suman"}, {"local": "Blowin' in the Wind (Bengali adaptation)", "english": "Blowin' in the Wind", "artist": "Anjan Dutt"}, {"local": "Annual Dylan Festival, Shillong", "english": "Multiple songs (live tradition)", "artist": "Lou Majaw"}]};
+
+// Chart 1: Countries bar chart
+(function() {
+  const d = COUNTRIES.slice().sort((a, b) => a.covers - b.covers);
+  Plotly.newPlot('chart-countries', [{
+    type: 'bar',
+    x: d.map(r => r.covers),
+    y: d.map(r => (FLAGS[r.country] || '') + ' ' + r.country),
+    orientation: 'h',
+    marker: {
+      color: d.map(r => COUNTRY_COLORS[r.country] || '#455a64'),
+      line: { width: 0 }
+    },
+    text: d.map(r => r.covers.toLocaleString()),
+    textposition: 'outside',
+    hovertemplate: d.map(r =>
+      `<b>${r.country}</b><br>Covers: ${r.covers.toLocaleString()}<br>` +
+      `Artists: ${r.unique_artists}<br>Songs: ${r.unique_songs}<br>` +
+      `Avg pop: ${r.avg_pop}<extra></extra>`
+    ),
+  }], {
+    margin: { l: 160, r: 70, t: 10, b: 40 },
+    xaxis: { title: 'Number of covers', gridcolor: '#e0e3dc', type: 'log' },
+    yaxis: {},
+    paper_bgcolor: 'rgba(0,0,0,0)',
+    plot_bgcolor: 'rgba(0,0,0,0)',
+    font: { family: 'Helvetica Neue, Arial, sans-serif', size: 12, color: '#1a1c1a' },
+  }, { responsive: true, displayModeBar: false });
+})();
+
+// Country profiles
+(function() {
+  const grid = document.getElementById('country-grid');
+  COUNTRIES.forEach(c => {
+    const card = document.createElement('div');
+    card.className = 'country-card';
+    const color = COUNTRY_COLORS[c.country] || '#455a64';
+    card.innerHTML = `
+      <div class="accent-bar" style="background:${color}"></div>
+      <div class="flag">${FLAGS[c.country] || '🌍'}</div>
+      <div class="name">${c.country}</div>
+      <div class="stats-line">
+        <strong>${c.covers.toLocaleString()}</strong> covers &middot;
+        <strong>${c.unique_artists}</strong> artists &middot;
+        <strong>${c.unique_songs}</strong> songs
+        ${c.has_translations ? ' &middot; <em style="color:' + color + '">🌐 Translations</em>' : ''}
+      </div>
+      <div class="artist-list">
+        ${c.top_artists.slice(0, 3).map(a => `${a.name} (${a.covers})`).join(' &middot; ')}
+      </div>
+    `;
+    grid.appendChild(card);
+  });
+})();
+
+// Translations section
+(function() {
+  const container = document.getElementById('translations-container');
+  const LANG_LABELS = {
+    'France': 'French', 'Germany': 'German / Kölsch',
+    'Sweden': 'Swedish', 'Poland': 'Polish',
+    'Italy': 'Italian', 'Norway': 'Norwegian'
+  };
+  for (const [country, trans] of Object.entries(TRANSLATIONS)) {
+    const label = document.createElement('div');
+    label.className = 'trans-country-label';
+    label.textContent = `${FLAGS[country] || ''} ${LANG_LABELS[country] || country}`;
+    container.appendChild(label);
+
+    const table = document.createElement('table');
+    table.className = 'trans-table';
+    table.innerHTML = `<thead><tr>
+      <th>Dylan original</th><th style="width:30px"></th><th>Local title</th><th>Artist</th>
+    </tr></thead><tbody>${
+      trans.map(t => `<tr>
+        <td>${t.english}</td>
+        <td class="arrow">&rarr;</td>
+        <td class="local">${t.local}</td>
+        <td style="color:var(--text-dim)">${t.artist}</td>
+      </tr>`).join('')
+    }</tbody>`;
+    container.appendChild(table);
+  }
+})();
+
+// Chart 3: Global songs stacked bar
+(function() {
+  const songs = GLOBAL_SONGS.slice().reverse();
+  const allCountries = ['United States', 'United Kingdom', 'Canada', 'Ireland', 'France', 'Germany', 'Australia', 'Greece', 'Poland', 'Sweden', 'Norway', 'Italy', 'Jamaica'];
+  const traces = allCountries.filter(c => {
+    return songs.some(s => s.countries.find(sc => sc.country === c));
+  }).map(country => ({
+    type: 'bar',
+    name: country,
+    x: songs.map(s => {
+      const match = s.countries.find(sc => sc.country === country);
+      return match ? match.covers : 0;
+    }),
+    y: songs.map(s => s.song.length > 30 ? s.song.slice(0, 28) + '…' : s.song),
+    orientation: 'h',
+    marker: { color: COUNTRY_COLORS[country] || '#455a64' },
+    hovertemplate: songs.map(s => {
+      const match = s.countries.find(sc => sc.country === country);
+      return match ? `<b>${s.song}</b><br>${country}: ${match.covers}<extra></extra>` : '';
+    }),
+  }));
+  Plotly.newPlot('chart-global-songs', traces, {
+    barmode: 'stack',
+    margin: { l: 200, r: 40, t: 10, b: 40 },
+    xaxis: { title: 'Number of covers', gridcolor: '#e0e3dc' },
+    yaxis: {},
+    legend: { orientation: 'h', y: 1.06, x: 0.5, xanchor: 'center', font: { size: 10 } },
+    paper_bgcolor: 'rgba(0,0,0,0)',
+    plot_bgcolor: 'rgba(0,0,0,0)',
+    font: { family: 'Helvetica Neue, Arial, sans-serif', size: 11, color: '#1a1c1a' },
+  }, { responsive: true, displayModeBar: false });
+})();
+
+// Chart 4: Depth scatter (non-US, non-UK)
+(function() {
+  const d = COUNTRIES.filter(c => !['United States', 'United Kingdom'].includes(c.country));
+  Plotly.newPlot('chart-depth', [{
+    type: 'scatter',
+    mode: 'markers+text',
+    x: d.map(r => r.covers),
+    y: d.map(r => r.unique_songs),
+    text: d.map(r => (FLAGS[r.country] || '') + ' ' + r.country),
+    textposition: d.map(r => {
+      if (r.country === 'Canada' || r.country === 'Ireland') return 'top right';
+      if (r.country === 'Greece') return 'bottom right';
+      return 'top center';
+    }),
+    textfont: { size: 11 },
+    marker: {
+      size: d.map(r => Math.max(12, Math.sqrt(r.covers) * 2.5)),
+      color: d.map(r => COUNTRY_COLORS[r.country] || '#455a64'),
+      opacity: 0.8,
+      line: { width: 1, color: '#ffffff' }
+    },
+    hovertemplate: d.map(r =>
+      `<b>${r.country}</b><br>Covers: ${r.covers}<br>Unique songs: ${r.unique_songs}<br>` +
+      `Artists: ${r.unique_artists}<br>Avg pop: ${r.avg_pop}<extra></extra>`
+    ),
+  }], {
+    margin: { l: 60, r: 40, t: 20, b: 50 },
+    xaxis: { title: 'Total covers', gridcolor: '#e0e3dc', type: 'log' },
+    yaxis: { title: 'Unique songs covered', gridcolor: '#e0e3dc' },
+    paper_bgcolor: 'rgba(0,0,0,0)',
+    plot_bgcolor: 'rgba(0,0,0,0)',
+    font: { family: 'Helvetica Neue, Arial, sans-serif', size: 12, color: '#1a1c1a' },
+    showlegend: false,
+  }, { responsive: true, displayModeBar: false });
+})();
+
+// Scroll reveal
+const observer = new IntersectionObserver(entries => {
+  entries.forEach(e => { if (e.isIntersecting) e.target.classList.add('visible'); });
+}, { threshold: 0.1 });
+document.querySelectorAll('section').forEach(s => observer.observe(s));
+</script>
+</body>
+</html>

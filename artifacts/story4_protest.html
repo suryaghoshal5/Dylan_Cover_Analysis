@@ -1,0 +1,628 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>The Protest Song Lifecycle: A 60-Year Study</title>
+<script src="https://cdn.plot.ly/plotly-2.27.0.min.js"></script>
+<style>
+:root {
+  --charcoal: #1c1c1c;
+  --olive: #4a5530;
+  --rust: #c0392b;
+  --gold: #d4a017;
+  --cream: #faf8f2;
+  --text: #2c2c2c;
+  --muted: #6b6b6b;
+  --border: #ddd8ce;
+}
+
+* { margin: 0; padding: 0; box-sizing: border-box; }
+
+body {
+  font-family: 'Georgia', 'Times New Roman', serif;
+  background: var(--cream);
+  color: var(--text);
+  line-height: 1.7;
+  -webkit-font-smoothing: antialiased;
+}
+
+/* --- Hero --- */
+.hero {
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  text-align: center;
+  padding: 2rem;
+  background: linear-gradient(180deg, var(--charcoal) 0%, #2d2d1e 60%, var(--olive) 100%);
+  color: #fff;
+  position: relative;
+}
+.hero::after {
+  content: '';
+  position: absolute;
+  bottom: 0; left: 0; right: 0;
+  height: 120px;
+  background: linear-gradient(to bottom, transparent, var(--cream));
+}
+.hero-kicker {
+  font-family: 'Helvetica Neue', Arial, sans-serif;
+  font-size: 0.75rem;
+  letter-spacing: 0.2em;
+  text-transform: uppercase;
+  color: var(--gold);
+  margin-bottom: 1.5rem;
+}
+.hero h1 {
+  font-size: clamp(2.2rem, 5vw, 3.8rem);
+  font-weight: 700;
+  line-height: 1.15;
+  max-width: 800px;
+  margin-bottom: 1.5rem;
+}
+.hero h1 em { font-style: italic; color: var(--gold); }
+.hero-sub {
+  font-family: 'Helvetica Neue', Arial, sans-serif;
+  font-size: 1.05rem;
+  color: rgba(255,255,255,0.7);
+  max-width: 620px;
+  line-height: 1.6;
+}
+.hero-stats {
+  display: flex;
+  gap: 3rem;
+  margin-top: 3rem;
+  font-family: 'Helvetica Neue', Arial, sans-serif;
+}
+.hero-stat .number {
+  font-size: clamp(2.5rem, 6vw, 4rem);
+  font-weight: 800;
+  color: var(--gold);
+  display: block;
+  line-height: 1;
+}
+.hero-stat .label {
+  font-size: 0.8rem;
+  color: rgba(255,255,255,0.5);
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+}
+.scroll-hint {
+  position: absolute;
+  bottom: 140px;
+  animation: bounce 2s infinite;
+  color: rgba(255,255,255,0.3);
+  font-size: 1.5rem;
+}
+@keyframes bounce { 0%,100%{transform:translateY(0)} 50%{transform:translateY(8px)} }
+
+/* --- Sections --- */
+.section {
+  max-width: 720px;
+  margin: 0 auto;
+  padding: 4rem 1.5rem;
+}
+
+.section h2 {
+  font-size: clamp(1.5rem, 3vw, 2.2rem);
+  font-weight: 700;
+  color: var(--charcoal);
+  margin-bottom: 1rem;
+  line-height: 1.2;
+}
+.section h3 {
+  font-family: 'Helvetica Neue', Arial, sans-serif;
+  font-size: 0.75rem;
+  letter-spacing: 0.15em;
+  text-transform: uppercase;
+  color: var(--rust);
+  margin-bottom: 0.5rem;
+}
+.section p { margin-bottom: 1.5rem; font-size: 1.05rem; }
+.section .muted { color: var(--muted); font-size: 0.9rem; }
+
+/* --- Chart containers --- */
+.chart-wide {
+  max-width: 1000px;
+  margin: 0 auto;
+  padding: 2rem 1.5rem;
+}
+.chart-box {
+  background: #fff;
+  border: 1px solid var(--border);
+  border-radius: 4px;
+  padding: 1.5rem;
+  margin-bottom: 2rem;
+  box-shadow: 0 2px 12px rgba(0,0,0,0.04);
+}
+.chart-caption {
+  font-family: 'Helvetica Neue', Arial, sans-serif;
+  font-size: 0.8rem;
+  color: var(--muted);
+  margin-top: 0.75rem;
+  line-height: 1.5;
+}
+
+/* --- Pull quote --- */
+.pull-quote {
+  border-left: 4px solid var(--rust);
+  padding: 1.5rem 2rem;
+  margin: 2rem 0;
+  background: rgba(192,57,43,0.04);
+  font-size: 1.2rem;
+  font-style: italic;
+  color: var(--charcoal);
+}
+.pull-quote cite {
+  display: block;
+  font-style: normal;
+  font-size: 0.85rem;
+  color: var(--muted);
+  margin-top: 0.5rem;
+}
+
+/* --- Song cards row --- */
+.song-row {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+  gap: 1rem;
+  margin: 2rem 0;
+}
+.song-card {
+  background: #fff;
+  border: 1px solid var(--border);
+  border-left: 4px solid var(--rust);
+  border-radius: 4px;
+  padding: 1rem 1.25rem;
+}
+.song-card .title {
+  font-weight: 700;
+  font-size: 0.95rem;
+  color: var(--charcoal);
+  line-height: 1.3;
+}
+.song-card .count {
+  font-family: 'Helvetica Neue', Arial, sans-serif;
+  font-size: 1.8rem;
+  font-weight: 800;
+  color: var(--rust);
+  line-height: 1;
+  margin-top: 0.25rem;
+}
+.song-card .sub {
+  font-family: 'Helvetica Neue', Arial, sans-serif;
+  font-size: 0.7rem;
+  color: var(--muted);
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+
+/* --- Era table --- */
+.era-table {
+  width: 100%;
+  border-collapse: collapse;
+  margin: 2rem 0;
+  font-family: 'Helvetica Neue', Arial, sans-serif;
+  font-size: 0.85rem;
+}
+.era-table th {
+  text-align: left;
+  font-size: 0.7rem;
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
+  color: var(--muted);
+  border-bottom: 2px solid var(--border);
+  padding: 0.5rem 0.75rem;
+}
+.era-table td {
+  padding: 0.6rem 0.75rem;
+  border-bottom: 1px solid var(--border);
+  vertical-align: top;
+}
+.era-table .era-name { font-weight: 700; color: var(--charcoal); }
+.era-table .pop-val { font-weight: 700; color: var(--rust); }
+
+/* --- Gallery --- */
+.gallery {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+  gap: 1.25rem;
+  margin: 2rem 0;
+}
+.cover-card {
+  background: #fff;
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  padding: 1.25rem;
+  transition: box-shadow 0.2s;
+}
+.cover-card:hover { box-shadow: 0 4px 20px rgba(0,0,0,0.08); }
+.cover-card .artist { font-weight: 700; font-size: 1rem; color: var(--charcoal); }
+.cover-card .song-name { font-style: italic; font-size: 0.9rem; color: var(--muted); }
+.cover-card .meta {
+  font-family: 'Helvetica Neue', Arial, sans-serif;
+  font-size: 0.8rem;
+  color: var(--muted);
+  margin-top: 0.25rem;
+}
+.cover-card .pop-bar {
+  height: 4px; background: var(--border); border-radius: 2px;
+  margin-top: 0.75rem; overflow: hidden;
+}
+.cover-card .pop-fill {
+  height: 100%; background: var(--rust); border-radius: 2px;
+}
+.cover-card a {
+  display: inline-block; margin-top: 0.5rem;
+  font-family: 'Helvetica Neue', Arial, sans-serif;
+  font-size: 0.75rem; color: var(--olive);
+  text-decoration: none; letter-spacing: 0.05em;
+}
+.cover-card a:hover { color: var(--rust); }
+
+/* --- Divider / Footer --- */
+.divider { max-width: 720px; margin: 0 auto; padding: 0 1.5rem; }
+.divider hr { border: none; border-top: 1px solid var(--border); }
+.footer {
+  max-width: 720px; margin: 0 auto;
+  padding: 3rem 1.5rem 4rem; text-align: center;
+}
+.footer p {
+  font-family: 'Helvetica Neue', Arial, sans-serif;
+  font-size: 0.8rem; color: var(--muted); line-height: 1.6;
+}
+
+@media (max-width: 600px) {
+  .section, .chart-wide { padding-left: 1rem; padding-right: 1rem; }
+  .song-row { grid-template-columns: 1fr 1fr; }
+  .gallery { grid-template-columns: 1fr; }
+  .hero-stats { flex-direction: column; gap: 1.5rem; }
+}
+</style>
+</head>
+<body>
+
+<!-- ========== HERO ========== -->
+<header class="hero">
+  <p class="hero-kicker">Dylan Cover Analysis</p>
+  <h1>The Protest Song Lifecycle:<br>A <em>64-Year</em> Study</h1>
+  <p class="hero-sub">
+    Five Dylan protest songs. 767 cover recordings. Six decades of war, crisis, and
+    social upheaval. How America's soundtrack of dissent has been reinterpreted
+    through every political era since 1963.
+  </p>
+  <div class="hero-stats">
+    <div class="hero-stat">
+      <span class="number">767</span>
+      <span class="label">Cover Recordings</span>
+    </div>
+    <div class="hero-stat">
+      <span class="number">5</span>
+      <span class="label">Protest Songs</span>
+    </div>
+    <div class="hero-stat">
+      <span class="number">64</span>
+      <span class="label">Years Covered</span>
+    </div>
+  </div>
+  <div class="scroll-hint">&#8595;</div>
+</header>
+
+<!-- ========== THE FIVE SONGS ========== -->
+<section class="section" id="sec-songs">
+  <h3>The Canon</h3>
+  <h2>Five Songs That Became a Movement</h2>
+  <p>
+    Between 1962 and 1964, Bob Dylan wrote a handful of songs that would define
+    the protest genre for the next six decades. These five were covered more than
+    any others — and they kept being covered long after the folk revival ended,
+    resurfacing whenever the political temperature rose.
+  </p>
+  <div class="song-row" id="song-cards"></div>
+</section>
+
+<!-- ========== TIMELINE ========== -->
+<section class="section" id="sec-timeline-intro">
+  <h3>The Pattern</h3>
+  <h2>When America Protests, It Reaches for Dylan</h2>
+  <p>
+    The timeline below overlays protest song cover frequency against major political
+    events. The pattern is striking: cover activity spikes during periods of political
+    crisis and social upheaval, from Vietnam through BLM.
+  </p>
+  <p class="muted">
+    Each bar represents Spotify-matched covers released that year. Red markers show
+    key political events. Hover for details.
+  </p>
+</section>
+
+<div class="chart-wide" id="sec-timeline">
+  <div class="chart-box">
+    <div id="timeline-plot" style="width:100%;height:500px;"></div>
+    <p class="chart-caption">
+      Cover frequency of five Dylan protest songs, 1963–2025, with political event annotations.
+      Covers are Spotify-matched only; the full MusicBrainz catalog contains 767 unique recordings.
+    </p>
+  </div>
+</div>
+
+<!-- ========== PER-SONG TIMELINE ========== -->
+<section class="section" id="sec-persong-intro">
+  <h3>Song by Song</h3>
+  <h2>Each Protest Song Has Its Own Rhythm</h2>
+  <p>
+    Not all protest songs resurface at the same moments. "Blowin' in the Wind"
+    is the universal anthem — covered in every era. "Masters of War" spikes around
+    actual wars. "The Times They Are A-Changin'" tracks generational transitions.
+    Each song has become a specific kind of political instrument.
+  </p>
+</section>
+
+<div class="chart-wide" id="sec-persong">
+  <div class="chart-box">
+    <div id="persong-plot" style="width:100%;height:500px;"></div>
+    <p class="chart-caption">
+      Cover frequency broken out by song. "Blowin' in the Wind" dominates across all eras;
+      "Masters of War" shows sharper, more event-driven spikes.
+    </p>
+  </div>
+</div>
+
+<!-- ========== ERA ANALYSIS ========== -->
+<section class="section" id="sec-eras">
+  <h3>By Political Era</h3>
+  <h2>The Covers Mirror Their Time</h2>
+  <p>
+    Each political era has a different relationship with Dylan's protest songs.
+    Vietnam-era covers carry folk sincerity; post-9/11 versions are rawer and more
+    urgent; the BLM/COVID era sees the widest genre diversity yet.
+  </p>
+</section>
+
+<div class="chart-wide" id="sec-heatmap">
+  <div class="chart-box">
+    <div id="heatmap-plot" style="width:100%;height:400px;"></div>
+    <p class="chart-caption">
+      Number of Spotify-matched covers per song per political era. Darker cells
+      indicate more covers. "Blowin' in the Wind" is consistently the most covered
+      across all eras.
+    </p>
+  </div>
+</div>
+
+<!-- ========== POPULARITY BY ERA ========== -->
+<section class="section" id="sec-popularity">
+  <h3>Staying Power</h3>
+  <h2>Do Protest Covers From Turbulent Eras Last?</h2>
+  <p>
+    Spotify popularity is a proxy for whether a cover endured beyond its political
+    moment. Vietnam-era covers have the highest median popularity — they've had
+    decades to accumulate cultural weight. Recent BLM/COVID covers show early
+    streaming traction but haven't yet proven their staying power.
+  </p>
+  <table class="era-table" id="era-pop-table">
+    <thead>
+      <tr><th>Era</th><th>Years</th><th>Covers</th><th>Median Pop.</th><th>Mean Pop.</th></tr>
+    </thead>
+    <tbody></tbody>
+  </table>
+</section>
+
+<!-- ========== TOP COVERS ========== -->
+<section class="section" id="sec-gallery-intro">
+  <h3>The Definitive Voices</h3>
+  <h2>The Most Enduring Protest Covers</h2>
+  <p>
+    From Peter, Paul and Mary's folk anthem to grandson's 2025 reimagining,
+    these are the protest covers that found the largest audiences.
+  </p>
+</section>
+
+<div class="chart-wide" id="sec-gallery">
+  <div id="gallery-container" class="gallery"></div>
+</div>
+
+<!-- ========== CLOSING ========== -->
+<div class="divider"><hr></div>
+
+<section class="section" id="sec-closing">
+  <h2>The Protest Song Never Retires</h2>
+  <p>
+    64 years after "Blowin' in the Wind," Dylan's protest songs are still
+    being recorded — not as nostalgia, but as active political tools. Each
+    generation finds new urgency in the same words, new sound in the same chords.
+    The songs don't belong to the sixties. They belong to whenever things get bad enough
+    that someone picks up a guitar and starts again.
+  </p>
+  <div class="pull-quote">
+    &ldquo;The answer, my friend, is blowin' in the wind.&rdquo;
+    <cite>&mdash; Still being sung, 2025</cite>
+  </div>
+</section>
+
+<footer class="footer">
+  <p>
+    Data: MusicBrainz &amp; Spotify &middot; Analysis: Dylan Cover Analysis Project &middot;
+    767 recordings of five protest songs, 1963&ndash;2026
+  </p>
+</footer>
+
+<script>
+const DATA = {"timeline": [{"year_int": 1962, "short_title": "Blowin' in the Wind", "count": 2}, {"year_int": 1963, "short_title": "A Hard Rain's a-Gonna Fall", "count": 5}, {"year_int": 1963, "short_title": "Blowin' in the Wind", "count": 60}, {"year_int": 1963, "short_title": "Masters of War", "count": 2}, {"year_int": 1963, "short_title": "With God on Our Side", "count": 3}, {"year_int": 1964, "short_title": "Blowin' in the Wind", "count": 5}, {"year_int": 1964, "short_title": "Masters of War", "count": 3}, {"year_int": 1964, "short_title": "The Times They Are A-Changin'", "count": 18}, {"year_int": 1964, "short_title": "With God on Our Side", "count": 2}, {"year_int": 1965, "short_title": "A Hard Rain's a-Gonna Fall", "count": 5}, {"year_int": 1965, "short_title": "Blowin' in the Wind", "count": 17}, {"year_int": 1965, "short_title": "Masters of War", "count": 1}, {"year_int": 1965, "short_title": "The Times They Are A-Changin'", "count": 18}, {"year_int": 1965, "short_title": "With God on Our Side", "count": 2}, {"year_int": 1966, "short_title": "Blowin' in the Wind", "count": 19}, {"year_int": 1967, "short_title": "Blowin' in the Wind", "count": 6}, {"year_int": 1967, "short_title": "The Times They Are A-Changin'", "count": 1}, {"year_int": 1968, "short_title": "Blowin' in the Wind", "count": 16}, {"year_int": 1968, "short_title": "Masters of War", "count": 1}, {"year_int": 1968, "short_title": "The Times They Are A-Changin'", "count": 3}, {"year_int": 1969, "short_title": "Blowin' in the Wind", "count": 13}, {"year_int": 1969, "short_title": "The Times They Are A-Changin'", "count": 8}, {"year_int": 1970, "short_title": "A Hard Rain's a-Gonna Fall", "count": 3}, {"year_int": 1970, "short_title": "With God on Our Side", "count": 7}, {"year_int": 1971, "short_title": "A Hard Rain's a-Gonna Fall", "count": 1}, {"year_int": 1972, "short_title": "Blowin' in the Wind", "count": 1}, {"year_int": 1973, "short_title": "A Hard Rain's a-Gonna Fall", "count": 19}, {"year_int": 1976, "short_title": "Blowin' in the Wind", "count": 5}, {"year_int": 1976, "short_title": "Masters of War", "count": 1}, {"year_int": 1980, "short_title": "Blowin' in the Wind", "count": 6}, {"year_int": 1982, "short_title": "The Times They Are A-Changin'", "count": 1}, {"year_int": 1984, "short_title": "Masters of War", "count": 5}, {"year_int": 1985, "short_title": "A Hard Rain's a-Gonna Fall", "count": 1}, {"year_int": 1986, "short_title": "Blowin' in the Wind", "count": 1}, {"year_int": 1987, "short_title": "Blowin' in the Wind", "count": 1}, {"year_int": 1988, "short_title": "Blowin' in the Wind", "count": 2}, {"year_int": 1989, "short_title": "The Times They Are A-Changin'", "count": 5}, {"year_int": 1989, "short_title": "With God on Our Side", "count": 2}, {"year_int": 1991, "short_title": "Blowin' in the Wind", "count": 20}, {"year_int": 1992, "short_title": "A Hard Rain's a-Gonna Fall", "count": 1}, {"year_int": 1992, "short_title": "With God on Our Side", "count": 3}, {"year_int": 1993, "short_title": "A Hard Rain's a-Gonna Fall", "count": 2}, {"year_int": 1993, "short_title": "The Times They Are A-Changin'", "count": 6}, {"year_int": 1993, "short_title": "With God on Our Side", "count": 1}, {"year_int": 1994, "short_title": "A Hard Rain's a-Gonna Fall", "count": 1}, {"year_int": 1994, "short_title": "Blowin' in the Wind", "count": 4}, {"year_int": 1994, "short_title": "The Times They Are A-Changin'", "count": 3}, {"year_int": 1995, "short_title": "A Hard Rain's a-Gonna Fall", "count": 1}, {"year_int": 1996, "short_title": "The Times They Are A-Changin'", "count": 1}, {"year_int": 1997, "short_title": "Blowin' in the Wind", "count": 12}, {"year_int": 1998, "short_title": "Blowin' in the Wind", "count": 3}, {"year_int": 1998, "short_title": "The Times They Are A-Changin'", "count": 1}, {"year_int": 1999, "short_title": "The Times They Are A-Changin'", "count": 1}, {"year_int": 2000, "short_title": "Blowin' in the Wind", "count": 2}, {"year_int": 2000, "short_title": "The Times They Are A-Changin'", "count": 4}, {"year_int": 2001, "short_title": "Blowin' in the Wind", "count": 14}, {"year_int": 2001, "short_title": "The Times They Are A-Changin'", "count": 9}, {"year_int": 2001, "short_title": "With God on Our Side", "count": 1}, {"year_int": 2002, "short_title": "Blowin' in the Wind", "count": 4}, {"year_int": 2003, "short_title": "Blowin' in the Wind", "count": 3}, {"year_int": 2004, "short_title": "A Hard Rain's a-Gonna Fall", "count": 1}, {"year_int": 2004, "short_title": "Blowin' in the Wind", "count": 4}, {"year_int": 2004, "short_title": "Masters of War", "count": 1}, {"year_int": 2004, "short_title": "The Times They Are A-Changin'", "count": 1}, {"year_int": 2005, "short_title": "A Hard Rain's a-Gonna Fall", "count": 4}, {"year_int": 2005, "short_title": "Blowin' in the Wind", "count": 2}, {"year_int": 2005, "short_title": "Masters of War", "count": 3}, {"year_int": 2005, "short_title": "The Times They Are A-Changin'", "count": 2}, {"year_int": 2006, "short_title": "Blowin' in the Wind", "count": 6}, {"year_int": 2006, "short_title": "Masters of War", "count": 1}, {"year_int": 2006, "short_title": "The Times They Are A-Changin'", "count": 5}, {"year_int": 2006, "short_title": "With God on Our Side", "count": 2}, {"year_int": 2007, "short_title": "A Hard Rain's a-Gonna Fall", "count": 2}, {"year_int": 2007, "short_title": "Blowin' in the Wind", "count": 2}, {"year_int": 2007, "short_title": "The Times They Are A-Changin'", "count": 11}, {"year_int": 2007, "short_title": "With God on Our Side", "count": 1}, {"year_int": 2008, "short_title": "Blowin' in the Wind", "count": 3}, {"year_int": 2008, "short_title": "Masters of War", "count": 2}, {"year_int": 2008, "short_title": "The Times They Are A-Changin'", "count": 4}, {"year_int": 2009, "short_title": "Blowin' in the Wind", "count": 9}, {"year_int": 2009, "short_title": "Masters of War", "count": 10}, {"year_int": 2010, "short_title": "Blowin' in the Wind", "count": 1}, {"year_int": 2010, "short_title": "Masters of War", "count": 2}, {"year_int": 2010, "short_title": "The Times They Are A-Changin'", "count": 2}, {"year_int": 2011, "short_title": "Blowin' in the Wind", "count": 2}, {"year_int": 2011, "short_title": "The Times They Are A-Changin'", "count": 2}, {"year_int": 2011, "short_title": "With God on Our Side", "count": 1}, {"year_int": 2012, "short_title": "A Hard Rain's a-Gonna Fall", "count": 2}, {"year_int": 2012, "short_title": "Blowin' in the Wind", "count": 3}, {"year_int": 2012, "short_title": "The Times They Are A-Changin'", "count": 2}, {"year_int": 2012, "short_title": "With God on Our Side", "count": 2}, {"year_int": 2013, "short_title": "Blowin' in the Wind", "count": 5}, {"year_int": 2013, "short_title": "Masters of War", "count": 1}, {"year_int": 2013, "short_title": "The Times They Are A-Changin'", "count": 1}, {"year_int": 2013, "short_title": "With God on Our Side", "count": 1}, {"year_int": 2014, "short_title": "A Hard Rain's a-Gonna Fall", "count": 1}, {"year_int": 2014, "short_title": "Blowin' in the Wind", "count": 4}, {"year_int": 2014, "short_title": "Masters of War", "count": 2}, {"year_int": 2014, "short_title": "The Times They Are A-Changin'", "count": 7}, {"year_int": 2015, "short_title": "A Hard Rain's a-Gonna Fall", "count": 2}, {"year_int": 2015, "short_title": "Blowin' in the Wind", "count": 12}, {"year_int": 2015, "short_title": "Masters of War", "count": 3}, {"year_int": 2015, "short_title": "The Times They Are A-Changin'", "count": 2}, {"year_int": 2016, "short_title": "Blowin' in the Wind", "count": 5}, {"year_int": 2016, "short_title": "Masters of War", "count": 1}, {"year_int": 2016, "short_title": "The Times They Are A-Changin'", "count": 2}, {"year_int": 2016, "short_title": "With God on Our Side", "count": 1}, {"year_int": 2017, "short_title": "A Hard Rain's a-Gonna Fall", "count": 3}, {"year_int": 2017, "short_title": "Blowin' in the Wind", "count": 3}, {"year_int": 2017, "short_title": "Masters of War", "count": 3}, {"year_int": 2017, "short_title": "The Times They Are A-Changin'", "count": 9}, {"year_int": 2018, "short_title": "A Hard Rain's a-Gonna Fall", "count": 15}, {"year_int": 2018, "short_title": "Blowin' in the Wind", "count": 1}, {"year_int": 2018, "short_title": "The Times They Are A-Changin'", "count": 2}, {"year_int": 2019, "short_title": "A Hard Rain's a-Gonna Fall", "count": 10}, {"year_int": 2019, "short_title": "Blowin' in the Wind", "count": 4}, {"year_int": 2019, "short_title": "The Times They Are A-Changin'", "count": 9}, {"year_int": 2020, "short_title": "A Hard Rain's a-Gonna Fall", "count": 15}, {"year_int": 2020, "short_title": "Blowin' in the Wind", "count": 3}, {"year_int": 2020, "short_title": "The Times They Are A-Changin'", "count": 6}, {"year_int": 2020, "short_title": "With God on Our Side", "count": 1}, {"year_int": 2021, "short_title": "A Hard Rain's a-Gonna Fall", "count": 2}, {"year_int": 2021, "short_title": "Masters of War", "count": 3}, {"year_int": 2021, "short_title": "The Times They Are A-Changin'", "count": 5}, {"year_int": 2022, "short_title": "A Hard Rain's a-Gonna Fall", "count": 1}, {"year_int": 2022, "short_title": "Blowin' in the Wind", "count": 4}, {"year_int": 2022, "short_title": "The Times They Are A-Changin'", "count": 3}, {"year_int": 2023, "short_title": "Blowin' in the Wind", "count": 5}, {"year_int": 2023, "short_title": "The Times They Are A-Changin'", "count": 3}, {"year_int": 2024, "short_title": "A Hard Rain's a-Gonna Fall", "count": 9}, {"year_int": 2024, "short_title": "Blowin' in the Wind", "count": 13}, {"year_int": 2024, "short_title": "Masters of War", "count": 37}, {"year_int": 2024, "short_title": "The Times They Are A-Changin'", "count": 8}, {"year_int": 2025, "short_title": "A Hard Rain's a-Gonna Fall", "count": 2}, {"year_int": 2025, "short_title": "Blowin' in the Wind", "count": 8}, {"year_int": 2025, "short_title": "Masters of War", "count": 6}, {"year_int": 2025, "short_title": "The Times They Are A-Changin'", "count": 3}, {"year_int": 2025, "short_title": "With God on Our Side", "count": 1}, {"year_int": 2026, "short_title": "Blowin' in the Wind", "count": 1}], "timeline_agg": [{"year": 1962, "count": 2}, {"year": 1963, "count": 70}, {"year": 1964, "count": 28}, {"year": 1965, "count": 43}, {"year": 1966, "count": 19}, {"year": 1967, "count": 7}, {"year": 1968, "count": 20}, {"year": 1969, "count": 21}, {"year": 1970, "count": 10}, {"year": 1971, "count": 1}, {"year": 1972, "count": 1}, {"year": 1973, "count": 19}, {"year": 1976, "count": 6}, {"year": 1980, "count": 6}, {"year": 1982, "count": 1}, {"year": 1984, "count": 5}, {"year": 1985, "count": 1}, {"year": 1986, "count": 1}, {"year": 1987, "count": 1}, {"year": 1988, "count": 2}, {"year": 1989, "count": 7}, {"year": 1991, "count": 20}, {"year": 1992, "count": 4}, {"year": 1993, "count": 9}, {"year": 1994, "count": 8}, {"year": 1995, "count": 1}, {"year": 1996, "count": 1}, {"year": 1997, "count": 12}, {"year": 1998, "count": 4}, {"year": 1999, "count": 1}, {"year": 2000, "count": 6}, {"year": 2001, "count": 24}, {"year": 2002, "count": 4}, {"year": 2003, "count": 3}, {"year": 2004, "count": 7}, {"year": 2005, "count": 11}, {"year": 2006, "count": 14}, {"year": 2007, "count": 16}, {"year": 2008, "count": 9}, {"year": 2009, "count": 19}, {"year": 2010, "count": 5}, {"year": 2011, "count": 5}, {"year": 2012, "count": 9}, {"year": 2013, "count": 8}, {"year": 2014, "count": 14}, {"year": 2015, "count": 19}, {"year": 2016, "count": 9}, {"year": 2017, "count": 18}, {"year": 2018, "count": 18}, {"year": 2019, "count": 23}, {"year": 2020, "count": 25}, {"year": 2021, "count": 10}, {"year": 2022, "count": 8}, {"year": 2023, "count": 8}, {"year": 2024, "count": 67}, {"year": 2025, "count": 20}, {"year": 2026, "count": 1}], "era_song": [{"era": "BLM / COVID", "short_title": "A Hard Rain's a-Gonna Fall", "count": 29}, {"era": "BLM / COVID", "short_title": "Blowin' in the Wind", "count": 34}, {"era": "BLM / COVID", "short_title": "Masters of War", "count": 46}, {"era": "BLM / COVID", "short_title": "The Times They Are A-Changin'", "count": 28}, {"era": "BLM / COVID", "short_title": "With God on Our Side", "count": 2}, {"era": "Occupy / Trump", "short_title": "A Hard Rain's a-Gonna Fall", "count": 33}, {"era": "Occupy / Trump", "short_title": "Blowin' in the Wind", "count": 40}, {"era": "Occupy / Trump", "short_title": "Masters of War", "count": 12}, {"era": "Occupy / Trump", "short_title": "The Times They Are A-Changin'", "count": 38}, {"era": "Occupy / Trump", "short_title": "With God on Our Side", "count": 5}, {"era": "Post-9/11", "short_title": "A Hard Rain's a-Gonna Fall", "count": 7}, {"era": "Post-9/11", "short_title": "Blowin' in the Wind", "count": 47}, {"era": "Post-9/11", "short_title": "Masters of War", "count": 17}, {"era": "Post-9/11", "short_title": "The Times They Are A-Changin'", "count": 32}, {"era": "Post-9/11", "short_title": "With God on Our Side", "count": 4}, {"era": "Post-Cold War", "short_title": "A Hard Rain's a-Gonna Fall", "count": 5}, {"era": "Post-Cold War", "short_title": "Blowin' in the Wind", "count": 41}, {"era": "Post-Cold War", "short_title": "The Times They Are A-Changin'", "count": 16}, {"era": "Post-Cold War", "short_title": "With God on Our Side", "count": 4}, {"era": "Punk / Reagan", "short_title": "A Hard Rain's a-Gonna Fall", "count": 1}, {"era": "Punk / Reagan", "short_title": "Blowin' in the Wind", "count": 15}, {"era": "Punk / Reagan", "short_title": "Masters of War", "count": 6}, {"era": "Punk / Reagan", "short_title": "The Times They Are A-Changin'", "count": 6}, {"era": "Punk / Reagan", "short_title": "With God on Our Side", "count": 2}, {"era": "Vietnam", "short_title": "A Hard Rain's a-Gonna Fall", "count": 33}, {"era": "Vietnam", "short_title": "Blowin' in the Wind", "count": 137}, {"era": "Vietnam", "short_title": "Masters of War", "count": 7}, {"era": "Vietnam", "short_title": "The Times They Are A-Changin'", "count": 48}, {"era": "Vietnam", "short_title": "With God on Our Side", "count": 14}], "era_order": ["Pre-Vietnam", "Vietnam", "Punk / Reagan", "Post-Cold War", "Post-9/11", "Occupy / Trump", "BLM / COVID"], "heatmap": [{"short_title": "A Hard Rain's a-Gonna Fall", "era": "BLM / COVID", "count": 29}, {"short_title": "A Hard Rain's a-Gonna Fall", "era": "Occupy / Trump", "count": 33}, {"short_title": "A Hard Rain's a-Gonna Fall", "era": "Post-9/11", "count": 7}, {"short_title": "A Hard Rain's a-Gonna Fall", "era": "Post-Cold War", "count": 5}, {"short_title": "A Hard Rain's a-Gonna Fall", "era": "Punk / Reagan", "count": 1}, {"short_title": "A Hard Rain's a-Gonna Fall", "era": "Vietnam", "count": 33}, {"short_title": "Blowin' in the Wind", "era": "BLM / COVID", "count": 34}, {"short_title": "Blowin' in the Wind", "era": "Occupy / Trump", "count": 40}, {"short_title": "Blowin' in the Wind", "era": "Post-9/11", "count": 47}, {"short_title": "Blowin' in the Wind", "era": "Post-Cold War", "count": 41}, {"short_title": "Blowin' in the Wind", "era": "Punk / Reagan", "count": 15}, {"short_title": "Blowin' in the Wind", "era": "Vietnam", "count": 137}, {"short_title": "Masters of War", "era": "BLM / COVID", "count": 46}, {"short_title": "Masters of War", "era": "Occupy / Trump", "count": 12}, {"short_title": "Masters of War", "era": "Post-9/11", "count": 17}, {"short_title": "Masters of War", "era": "Punk / Reagan", "count": 6}, {"short_title": "Masters of War", "era": "Vietnam", "count": 7}, {"short_title": "The Times They Are A-Changin'", "era": "BLM / COVID", "count": 28}, {"short_title": "The Times They Are A-Changin'", "era": "Occupy / Trump", "count": 38}, {"short_title": "The Times They Are A-Changin'", "era": "Post-9/11", "count": 32}, {"short_title": "The Times They Are A-Changin'", "era": "Post-Cold War", "count": 16}, {"short_title": "The Times They Are A-Changin'", "era": "Punk / Reagan", "count": 6}, {"short_title": "The Times They Are A-Changin'", "era": "Vietnam", "count": 48}, {"short_title": "With God on Our Side", "era": "BLM / COVID", "count": 2}, {"short_title": "With God on Our Side", "era": "Occupy / Trump", "count": 5}, {"short_title": "With God on Our Side", "era": "Post-9/11", "count": 4}, {"short_title": "With God on Our Side", "era": "Post-Cold War", "count": 4}, {"short_title": "With God on Our Side", "era": "Punk / Reagan", "count": 2}, {"short_title": "With God on Our Side", "era": "Vietnam", "count": 14}], "top_by_era": {"BLM / COVID": [{"artist": "John Crome", "song": "Blowin' in the Wind", "popularity": 64, "year": "2024-04-05"}, {"artist": "Rain Hard", "song": "A Hard Rain's a-Gonna Fall", "popularity": 63, "year": "2021-03-11"}, {"artist": "Viktor Kvist", "song": "The Times They Are A-Changin'", "popularity": 59, "year": "2020-09-11"}, {"artist": "grandson", "song": "Masters of War", "popularity": 54, "year": "2025-12-05"}, {"artist": "Timothée Chalamet, Monica Barbaro", "song": "Blowin' in the Wind", "popularity": 42, "year": "2024-12-20"}], "Occupy / Trump": [{"artist": "Fort Nowhere", "song": "The Times They Are A-Changin'", "popularity": 43, "year": "2019-12-13"}, {"artist": "Laura Marling", "song": "A Hard Rain's a-Gonna Fall", "popularity": 42, "year": "2017-12-21"}, {"artist": "Walk off the Earth", "song": "A Hard Rain's a-Gonna Fall", "popularity": 38, "year": "2012-11-20"}, {"artist": "Rainbow Girls, Ben Morrison, John Craigie", "song": "A Hard Rain's a-Gonna Fall", "popularity": 34, "year": "2019-02-22"}, {"artist": "Me First and the Gimme Gimmes", "song": "The Times They Are A-Changin'", "popularity": 33, "year": "2017-04-07"}], "Post-9/11": [{"artist": "Elephant Kashimashi", "song": "Blowin' in the Wind", "popularity": 41, "year": "2008-01-01"}, {"artist": "Eddie Vedder", "song": "Masters of War", "popularity": 39, "year": "2009-01-01"}, {"artist": "Bryan Ferry", "song": "The Times They Are A-Changin'", "popularity": 35, "year": "2007-03-05"}, {"artist": "Me First and the Gimme Gimmes", "song": "Blowin' in the Wind", "popularity": 35, "year": "2001-03-20"}, {"artist": "Nina Simone", "song": "The Times They Are A-Changin'", "popularity": 34, "year": "2006-01-16"}], "Post-Cold War": [{"artist": "Tracy Chapman", "song": "The Times They Are A-Changin'", "popularity": 42, "year": "1993-03-03"}, {"artist": "Bryan Ferry", "song": "A Hard Rain's a-Gonna Fall", "popularity": 32, "year": "1995-01-01"}, {"artist": "Phil Collins", "song": "The Times They Are A-Changin'", "popularity": 26, "year": "1996-10-21"}, {"artist": "Neil Young, Crazy Horse", "song": "Blowin' in the Wind", "popularity": 24, "year": "1991-10-22"}, {"artist": "Richie Havens", "song": "The Times They Are A-Changin'", "popularity": 22, "year": "1994"}], "Punk / Reagan": [{"artist": "Joan Baez", "song": "Blowin' in the Wind", "popularity": 44, "year": "1976-01-01"}, {"artist": "The Neville Brothers", "song": "With God on Our Side", "popularity": 32, "year": "1989-03-14"}, {"artist": "The Seekers", "song": "The Times They Are A-Changin'", "popularity": 22, "year": "1989-01-30"}, {"artist": "Ray Conniff", "song": "Blowin' in the Wind", "popularity": 22, "year": "1988-02-05"}, {"artist": "Joan Baez", "song": "Blowin' in the Wind", "popularity": 16, "year": "1980-11-03"}], "Vietnam": [{"artist": "Peter, Paul and Mary", "song": "Blowin' in the Wind", "popularity": 60, "year": "1963"}, {"artist": "Simon & Garfunkel", "song": "The Times They Are A-Changin'", "popularity": 44, "year": "1964-10-19"}, {"artist": "Leon Russell", "song": "A Hard Rain's a-Gonna Fall", "popularity": 43, "year": "1971"}, {"artist": "Joan Baez", "song": "Blowin' in the Wind", "popularity": 37, "year": "1968"}, {"artist": "The Hollies", "song": "Blowin' in the Wind", "popularity": 37, "year": "1969-05-01"}]}, "popularity_by_era": [{"era": "BLM / COVID", "mean": 30.7, "median": 33.0, "count": 139}, {"era": "Occupy / Trump", "mean": 14.0, "median": 10.0, "count": 128}, {"era": "Post-9/11", "mean": 15.4, "median": 15.0, "count": 107}, {"era": "Post-Cold War", "mean": 17.6, "median": 20.0, "count": 66}, {"era": "Punk / Reagan", "mean": 17.4, "median": 16.0, "count": 30}, {"era": "Vietnam", "mean": 36.4, "median": 35.0, "count": 239}], "song_stats": [{"title": "Blowin' in the Wind", "total_recordings": 345, "spotify_tracks": 316, "median_popularity": 20.0}, {"title": "The Times They Are A-Changin'", "total_recordings": 179, "spotify_tracks": 168, "median_popularity": 18.0}, {"title": "Masters of War", "total_recordings": 95, "spotify_tracks": 88, "median_popularity": 33.0}, {"title": "A Hard Rain's a-Gonna Fall", "total_recordings": 115, "spotify_tracks": 108, "median_popularity": 31.0}, {"title": "With God on Our Side", "total_recordings": 33, "spotify_tracks": 31, "median_popularity": 17.0}], "top_covers": [{"artist": "John Crome", "song": "Blowin' in the Wind", "popularity": 64, "year": "2024-04-05", "spotify_url": "https://open.spotify.com/track/3SHt0uSk2iBR9EPsJV69zK", "album": "Blowin' In The Wind"}, {"artist": "Rain Hard", "song": "A Hard Rain's a-Gonna Fall", "popularity": 63, "year": "2021-03-11", "spotify_url": "https://open.spotify.com/track/2nqyQEWwRitXReoUdODWzl", "album": "Rain Rain Rain"}, {"artist": "Peter, Paul and Mary", "song": "Blowin' in the Wind", "popularity": 60, "year": "1963", "spotify_url": "https://open.spotify.com/track/62Yu8QL1g9pdbvN4XL9Rah", "album": "In the Wind"}, {"artist": "Viktor Kvist", "song": "The Times They Are A-Changin'", "popularity": 59, "year": "2020-09-11", "spotify_url": "https://open.spotify.com/track/3Oj3qgVvYddVbPrNBDEWO3", "album": "The Times They Are a-Changin’"}, {"artist": "grandson", "song": "Masters of War", "popularity": 54, "year": "2025-12-05", "spotify_url": "https://open.spotify.com/track/0EJlSUNoYL931cYAQspN5i", "album": "INERTIA"}, {"artist": "Simon & Garfunkel", "song": "The Times They Are A-Changin'", "popularity": 44, "year": "1964-10-19", "spotify_url": "https://open.spotify.com/track/3sO5oZ9NLbAlU6h1qVCPJq", "album": "Wednesday Morning, 3 A.M."}, {"artist": "Joan Baez", "song": "Blowin' in the Wind", "popularity": 44, "year": "1976-01-01", "spotify_url": "https://open.spotify.com/track/3Fd225w3GoHV26eYzEpbiR", "album": "From Every Stage"}, {"artist": "Fort Nowhere", "song": "The Times They Are A-Changin'", "popularity": 43, "year": "2019-12-13", "spotify_url": "https://open.spotify.com/track/2iBJDuwNkoewHARF0boVET", "album": "The Times They Are A-Changin'"}, {"artist": "Leon Russell", "song": "A Hard Rain's a-Gonna Fall", "popularity": 43, "year": "1971", "spotify_url": "https://open.spotify.com/track/2Ov2aVPLMW0N8SYTeiKyki", "album": "Leon Russell And The Shelter People (Expanded Edition)"}, {"artist": "Tracy Chapman", "song": "The Times They Are A-Changin'", "popularity": 42, "year": "1993-03-03", "spotify_url": "https://open.spotify.com/track/0IvdJ0V3Sl6ClrmJLrGEUV", "album": "Bob Dylan - 30th Anniversary Concert Celebration [(Deluxe Edition) [Remastered]]"}, {"artist": "Laura Marling", "song": "A Hard Rain's a-Gonna Fall", "popularity": 42, "year": "2017-12-21", "spotify_url": "https://open.spotify.com/track/7xnKChdFA6DHWPzULuAWf1", "album": "A Hard Rain's A-Gonna Fall"}, {"artist": "Timothée Chalamet, Monica Barbaro", "song": "Blowin' in the Wind", "popularity": 42, "year": "2024-12-20", "spotify_url": "https://open.spotify.com/track/7GjGJ4bW87RWHAqaryzUbk", "album": "A Complete Unknown (Original Motion Picture Soundtrack)"}, {"artist": "Edie Brickell & New Bohemians", "song": "A Hard Rain's a-Gonna Fall", "popularity": 41, "year": "2020-06-12", "spotify_url": "https://open.spotify.com/track/1ifM8CPFBKYVZUKTdIFyJF", "album": "Protest Songs"}, {"artist": "Elephant Kashimashi", "song": "Blowin' in the Wind", "popularity": 41, "year": "2008-01-01", "spotify_url": "https://open.spotify.com/track/674NDUP3PSiT9L7sOVuQnO", "album": "笑顔の未来へ"}, {"artist": "Rasmus H Thomsen Trio, Arve Henriksen, Oskar Cederblad, Rasmus H Thomsen", "song": "Blowin' in the Wind", "popularity": 41, "year": "2025-04-25", "spotify_url": "https://open.spotify.com/track/6hSrQaNKWAKJmjiJpjRJdL", "album": "Blowing In The Wind"}, {"artist": "Timothée Chalamet", "song": "The Times They Are A-Changin'", "popularity": 40, "year": "2024-12-20", "spotify_url": "https://open.spotify.com/track/36r8344cJ81az8mfO6yojr", "album": "A Complete Unknown (Original Motion Picture Soundtrack)"}, {"artist": "Eddie Vedder", "song": "Masters of War", "popularity": 39, "year": "2009-01-01", "spotify_url": "https://open.spotify.com/track/3UioODQhZ9cpHcchbWazFq", "album": "The People Speak"}, {"artist": "Amon Amarth", "song": "Masters of War", "popularity": 39, "year": "2021-05-28", "spotify_url": "https://open.spotify.com/track/4Avnu5FR70qWD9VxandTWe", "album": "Masters of War"}, {"artist": "Stephanie Leavell", "song": "Blowin' in the Wind", "popularity": 39, "year": "2023-09-15", "spotify_url": "https://open.spotify.com/track/3EEIXNhEywD58ZiY8lqKT7", "album": "Fall Songs for Kids"}, {"artist": "Timothée Chalamet", "song": "A Hard Rain's a-Gonna Fall", "popularity": 38, "year": "2024-12-20", "spotify_url": "https://open.spotify.com/track/3F544tk9EjPIxsSCyNW1KQ", "album": "A Complete Unknown (Original Motion Picture Soundtrack)"}], "stats": {"total_recordings": 767, "total_spotify": 711, "songs_count": 5, "song_titles": ["Blowin' in the Wind", "The Times They Are A-Changin'", "Masters of War", "A Hard Rain's a-Gonna Fall", "With God on Our Side"], "year_range": [1962, 2026]}};
+
+// --- Scroll reveal ---
+const observer = new IntersectionObserver((entries) => {
+  entries.forEach(e => { if (e.isIntersecting) e.target.classList.add('visible'); });
+}, { threshold: 0.15 });
+document.querySelectorAll('.section, .chart-wide').forEach(el => observer.observe(el));
+
+// --- Config ---
+const plotConfig = { displayModeBar: false, responsive: true };
+const plotFont = { family: 'Helvetica Neue, Arial, sans-serif', size: 12, color: '#6b6b6b' };
+const rustColor = '#c0392b';
+const oliveColor = '#4a5530';
+const charcoal = '#1c1c1c';
+const goldColor = '#d4a017';
+
+const songColors = {
+  "Blowin' in the Wind": '#c0392b',
+  "The Times They Are A-Changin'": '#d4a017',
+  "Masters of War": '#4a5530',
+  "A Hard Rain's a-Gonna Fall": '#2c3e50',
+  "With God on Our Side": '#8e6f3e',
+};
+
+// --- Song cards ---
+const songCards = document.getElementById('song-cards');
+DATA.song_stats.forEach(s => {
+  const card = document.createElement('div');
+  card.className = 'song-card';
+  card.innerHTML = `
+    <div class="title">${s.title}</div>
+    <div class="count">${s.total_recordings}</div>
+    <div class="sub">recordings</div>
+  `;
+  songCards.appendChild(card);
+});
+
+// --- Political events for annotations ---
+const events = [
+  {year:1963,text:"March on Washington"},
+  {year:1968,text:"MLK / Tet Offensive"},
+  {year:1969,text:"Woodstock"},
+  {year:1975,text:"Fall of Saigon"},
+  {year:1989,text:"Berlin Wall"},
+  {year:2001,text:"9/11"},
+  {year:2003,text:"Iraq War"},
+  {year:2011,text:"Occupy"},
+  {year:2016,text:"Trump Elected"},
+  {year:2020,text:"BLM / COVID"},
+];
+
+// --- Timeline (aggregate) ---
+const tl = DATA.timeline_agg;
+const maxCount = Math.max(...tl.map(d => d.count));
+
+const eventShapes = events.map(e => ({
+  type: 'line', x0: e.year, x1: e.year, y0: 0, y1: maxCount * 1.15,
+  line: { color: rustColor, width: 1, dash: 'dot' }
+}));
+const eventAnnotations = events.map(e => ({
+  x: e.year, y: maxCount * 1.1, text: e.text, showarrow: false,
+  font: { size: 9, color: rustColor }, textangle: -45, yshift: 10,
+}));
+
+Plotly.newPlot('timeline-plot', [{
+  x: tl.map(d => d.year),
+  y: tl.map(d => d.count),
+  type: 'bar',
+  marker: { color: oliveColor, opacity: 0.85 },
+  hovertemplate: '%{x}: %{y} covers<extra></extra>',
+}], {
+  font: plotFont,
+  paper_bgcolor: 'transparent', plot_bgcolor: 'transparent',
+  xaxis: { title: 'Year', gridcolor: '#eee', dtick: 5 },
+  yaxis: { title: 'Spotify-Matched Covers', gridcolor: '#eee' },
+  shapes: eventShapes,
+  annotations: eventAnnotations,
+  margin: { l: 50, r: 20, t: 40, b: 50 },
+  height: 500,
+}, plotConfig);
+
+// --- Per-song timeline ---
+const songs = DATA.stats.song_titles;
+const perSongTraces = songs.map(song => {
+  const songData = DATA.timeline.filter(d => d.short_title === song);
+  return {
+    x: songData.map(d => d.year_int),
+    y: songData.map(d => d.count),
+    type: 'bar',
+    name: song,
+    marker: { color: songColors[song] || '#999' },
+    hovertemplate: `${song}<br>%{x}: %{y}<extra></extra>`,
+  };
+});
+
+Plotly.newPlot('persong-plot', perSongTraces, {
+  font: plotFont,
+  paper_bgcolor: 'transparent', plot_bgcolor: 'transparent',
+  barmode: 'stack',
+  xaxis: { title: 'Year', gridcolor: '#eee', dtick: 5 },
+  yaxis: { title: 'Covers', gridcolor: '#eee' },
+  legend: { orientation: 'h', y: -0.15, font: { size: 10 } },
+  margin: { l: 50, r: 20, t: 20, b: 80 },
+  height: 500,
+}, plotConfig);
+
+// --- Heatmap ---
+const hm = DATA.heatmap;
+const eraOrder = DATA.era_order;
+const songOrder = songs;
+
+const heatmapZ = songOrder.map(song =>
+  eraOrder.map(era => {
+    const match = hm.find(d => d.short_title === song && d.era === era);
+    return match ? match.count : 0;
+  })
+);
+
+Plotly.newPlot('heatmap-plot', [{
+  z: heatmapZ,
+  x: eraOrder,
+  y: songOrder,
+  type: 'heatmap',
+  colorscale: [[0, '#faf8f2'], [0.25, '#e8d5b5'], [0.5, '#c0956e'], [0.75, '#8b5e3c'], [1, '#4a2c17']],
+  hovertemplate: '%{y}<br>%{x}: %{z} covers<extra></extra>',
+  showscale: true,
+  colorbar: { title: 'Covers', titleside: 'right', thickness: 15 },
+}], {
+  font: plotFont,
+  paper_bgcolor: 'transparent', plot_bgcolor: 'transparent',
+  xaxis: { side: 'bottom', tickangle: -30 },
+  yaxis: { autorange: 'reversed' },
+  margin: { l: 200, r: 80, t: 20, b: 80 },
+  height: 400,
+}, plotConfig);
+
+// --- Era popularity table ---
+const eraYears = {
+  "Pre-Vietnam": "< 1963", "Vietnam": "1963–75", "Punk / Reagan": "1976–89",
+  "Post-Cold War": "1990–00", "Post-9/11": "2001–09",
+  "Occupy / Trump": "2010–19", "BLM / COVID": "2020–26"
+};
+const tbody = document.querySelector('#era-pop-table tbody');
+eraOrder.forEach(era => {
+  const d = DATA.popularity_by_era.find(p => p.era === era);
+  if (!d) return;
+  const tr = document.createElement('tr');
+  tr.innerHTML = `
+    <td class="era-name">${era}</td>
+    <td>${eraYears[era] || ''}</td>
+    <td>${d['count']}</td>
+    <td class="pop-val">${d['median'].toFixed(0)}</td>
+    <td>${d['mean'].toFixed(1)}</td>
+  `;
+  tbody.appendChild(tr);
+});
+
+// --- Gallery ---
+const gallery = document.getElementById('gallery-container');
+DATA.top_covers.forEach(cover => {
+  const meta = [cover.year, cover.album].filter(Boolean).join(' · ');
+  const card = document.createElement('div');
+  card.className = 'cover-card';
+  card.innerHTML = `
+    <div class="artist">${cover.artist}</div>
+    <div class="song-name">"${cover.song}"</div>
+    <div class="meta">${meta}</div>
+    <div class="pop-bar"><div class="pop-fill" style="width:${cover.popularity}%"></div></div>
+    <div class="meta" style="margin-top:0.25rem">Popularity: ${cover.popularity}/100</div>
+    ${cover.spotify_url ? `<a href="${cover.spotify_url}" target="_blank" rel="noopener">Listen on Spotify &rarr;</a>` : ''}
+  `;
+  gallery.appendChild(card);
+});
+</script>
+</body>
+</html>

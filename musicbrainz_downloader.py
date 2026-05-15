@@ -28,12 +28,13 @@ import logging
 import os
 import shutil
 import subprocess
+import sys
 import tarfile
 import tempfile
 import time
 from dataclasses import dataclass, field
 from pathlib import Path
-from typing import List, Optional
+from typing import Optional
 
 import requests
 
@@ -90,7 +91,7 @@ class DumpConfig:
 
     base_url: str = "https://ftp.musicbrainz.org/pub/musicbrainz/data/fullexport"
     release: Optional[str] = None
-    files: List[str] = field(
+    files: list[str] = field(
         default_factory=lambda: [
             "mbdump.tar.bz2",
             "mbdump-derived.tar.bz2",
@@ -144,7 +145,7 @@ class MusicBrainzDownloader:
     # ------------------------------------------------------------------
     # Download logic
     # ------------------------------------------------------------------
-    def download_dump(self, verify: bool = True, overwrite: bool = False) -> List[Path]:
+    def download_dump(self, verify: bool = True, overwrite: bool = False) -> list[Path]:
         """Download the configured dump files with retry and resume support.
 
         Parameters
@@ -159,7 +160,7 @@ class MusicBrainzDownloader:
         release_dir = self.data_dir / release
         release_dir.mkdir(parents=True, exist_ok=True)
 
-        downloaded_files: List[Path] = []
+        downloaded_files: list[Path] = []
         for file_name in self.dump_config.files:
             target_file = release_dir / file_name
             temp_file = release_dir / f"{file_name}.partial"
@@ -280,7 +281,10 @@ class MusicBrainzDownloader:
                         f"Unsafe path detected while extracting {dump_file}: {member.name}"
                     ) from exc
 
-            archive.extractall(destination, members)
+            if sys.version_info >= (3, 12):
+                archive.extractall(destination, members, filter="data")
+            else:
+                archive.extractall(destination, members)
 
         logger.info("Extraction complete for %s", dump_file)
         return destination
@@ -357,11 +361,6 @@ class MusicBrainzDownloader:
         """Start a PostgreSQL container if it is not already running."""
 
         logger.info("Ensuring PostgreSQL Docker container '%s' is running", container_name)
-        env_vars = {
-            "POSTGRES_USER": postgres_config.user,
-            "POSTGRES_PASSWORD": postgres_config.password,
-            "POSTGRES_DB": postgres_config.database,
-        }
 
         inspect = subprocess.run(
             ["docker", "inspect", container_name],
@@ -372,12 +371,15 @@ class MusicBrainzDownloader:
             logger.info("Docker container '%s' already exists", container_name)
             return
 
+        volume_name = f"{container_name}-data"
         command = [
             "docker",
             "run",
             "-d",
             "--name",
             container_name,
+            "-v",
+            f"{volume_name}:/var/lib/postgresql/data",
             "-e",
             f"POSTGRES_USER={postgres_config.user}",
             "-e",
@@ -447,8 +449,6 @@ def download_and_prepare(
     dump_config: Optional[DumpConfig] = None,
 ) -> None:
     """Convenience wrapper used by :mod:`main` to setup MusicBrainz dumps."""
-
-    logging.basicConfig(level=logging.INFO, format="%(asctime)s %(levelname)s %(message)s")
 
     downloader = MusicBrainzDownloader(dump_config=dump_config)
     postgres_config = postgres_config or PostgresConfig()
